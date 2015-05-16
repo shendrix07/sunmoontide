@@ -1,31 +1,34 @@
 # -*- coding: utf-8 -*-
-from tide import Tides
-from astro import Astro
+from tides import Tides
+#from astro import Astro
 #?? Graphics module import
 import argparse
 import os
-import pickle
+#import pickle
 
 parser = argparse.ArgumentParser()
-parser.add_argument('input_filename', type=argparse.FileType('r'))
+parser.add_argument('filename',
+                    help = 'Path to a NOAA annual tide prediction file.')
 args = parser.parse_args()
 
-assert(os.path.exists(args.input_filename))
-print('Making Sun*Moon*Tides Calendar with ' +
-        'input file {}'.format(args.input_filename))
-tides = Tides(args.input_filename)
+if not os.path.isfile(args.filename):
+    raise IOError('Cannot find ' + args.filename)
+print('Making Sun * Moon * Tides Calendar with ' +
+        'input file ' + args.filename)
 
-sun = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'sun')
-moon = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'moon')
+tides = Tides(args.filename)
+print(tides.station_name + ', ' + tides.state)
+#sun = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'sun')
+#moon = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'moon')
 
 # pickle sun, moon, tides
-with open('sun_moon_tide_data.pickle', 'wb') as f:
-    pickle.dump([sun, moon, tides], f, pickle.HIGHEST_PROTOCOL)
-print('Computations complete, pickled in @@@wherever.')
+#with open('sun_moon_tide_data.pickle', 'wb') as f:
+#    pickle.dump([sun, moon, tides], f, pickle.HIGHEST_PROTOCOL)
+#print('Computations complete, pickled in @@@wherever.')
 
 print('Starting to draw calendar now.')
 # Call graphics stuff to make the output
 # @@@@@@@
 #
 #
-print("Calendar complete. Find output in new folder, @@@@")
+print('Calendar complete. Find output in new folder, @@@@')
