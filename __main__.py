@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from tides import Tides
-#from astro import Astro
+from astro import Astro
 #?? Graphics module import
 import argparse
 import os
@@ -18,15 +18,17 @@ print('Making Sun * Moon * Tides Calendar with ' +
 
 tides = Tides(args.filename)
 print(tides.station_name + ', ' + tides.state)
-#sun = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'sun')
-#moon = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'moon')
+sun = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'Sun')
+print('Sun calculations complete')
+moon = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'Moon')
+print('Moon calculations complete')
 
 # pickle sun, moon, tides
 #with open('sun_moon_tide_data.pickle', 'wb') as f:
 #    pickle.dump([sun, moon, tides], f, pickle.HIGHEST_PROTOCOL)
 #print('Computations complete, pickled in @@@wherever.')
 
-print('Starting to draw calendar now.')
+print('@@@Starting to draw calendar now.')
 # Call graphics stuff to make the output
 # @@@@@@@
 #

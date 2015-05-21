@@ -1,19 +1,22 @@
+# -*- coding: utf-8 -*-
 """This module builds Tides objects from NOAA Annual Tide Prediction text
 files, with helper functions that may be useful in other applications.
 """
 
-import pandas as pd
+import itertools
 import numpy as np
 import math
+import pandas as pd
 import pkgutil
 from io import BytesIO
-import itertools
+
 
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = itertools.tee(iterable)
     next(b, None)
     return zip(a, b)
+
 
 def sine_interp(height1, height2, resolution, remove_end=False):
     """ Interpolate a half sine wave between two heights.
@@ -167,6 +170,7 @@ def read_noaa_header(filename):
 
     return metadata, column_names
 
+
 def lookup_station_info(StationID):
     """  Given a NOAA tide prediction station ID, look it up in
     station_info.csv and return the information in a dict.
@@ -279,7 +283,7 @@ def build_all_tides(raw_tides, resolution, use_column):
 class Tides:
     """A class with everything related to a NOAA tide prediction file - all the
     input required to graph tidal plots and provide station information for a
-    Sun * Moon * Tides calendar.
+    Sun * Moon * Tide calendar.
     """
     def __init__(self, NOAA_filename):
         """Take the filename and build everything that needs to be built.
@@ -322,7 +326,7 @@ class Tides:
         if self.station_type == 'Subordinate':
             self._set_reference_station_info(metadata)
 
-        self.year = self.raw_tides.index[100].year
+        self.year = str(self.raw_tides.index[100].year)
         self.annual_max = max(rawtides.ft)     # &**&
         self.annual_min = min(rawtides.ft)     # &**&
 
@@ -340,6 +344,7 @@ class Tides:
         # time offsets are in minutes + or -
         self.time_offset_low = metadata['TimeOffsetLow'].strip()
         self.time_offset_high = metadata['TimeOffsetHigh'].strip()
+
 
 if __name__ == "__main__":
     import doctest
