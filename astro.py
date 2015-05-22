@@ -12,6 +12,23 @@ import numpy as np
 import pandas as pd
 import pytz
 
+
+def copy_ephem_observer(original_observer):
+    """ephem.Observer objects are missing a copy method. So this returns a
+    brand new Observer object whose attributes have been set to the same values
+    as in the original observer."""
+    new_observer = ephem.Observer()
+    new_observer.date = original_observer.date
+    new_observer.epoch = original_observer.epoch
+    new_observer.long = original_observer.long
+    new_observer.lat = original_observer.lat
+    new_observer.elev = original_observer.elev
+    new_observer.temp = original_observer.temp
+    new_observer.pressure = original_observer.pressure
+    new_observer.horizon = original_observer.horizon
+    return new_observer
+
+
 def utc_year_bounds(time_zone, year):
     """Given a tzdata/IANA time zone name (string) and a year (can be a string
     or integer), returns two ephem.Date objects corresponding to local midnight
@@ -75,21 +92,94 @@ def utc_year_bounds(time_zone, year):
     return begin_result, end_result
 
 
+def fill_in_heights(start, stop, step, observe, body_name, append_NaN=True):
+    """Return a sequential list of times and heights at given step
+    resolution, for an astronomical body's altitude over time.
+    
+    Arguments:
+        start (ephem.Date): the initial time
+        stop (ephem.Date): the final time (will be included in the result)
+        step (float): a step size in days (i.e. 15 minutes = 15 / (60 * 24))
+        observe (ephem.Observer): pre-initialized ephem.Observer() object
+            with location information set; it will be copied to prevent
+            alteration of the original observer object's date attribute
+        body_name (str): a title-case ephem body name, i.e. 'Sun' or 'Moon'
+        
+    Optional: append_NaN defaults to True, which will append a NaN value to
+    the end of the result, to provide breaks between plotted line segments.
+    
+    Returns:
+        times, heights
+        times: a list of sequential timezone-naive datetimes (actually in UTC)
+        heights: a list of floats, providing sin(altitude) of the body at
+            each time
+        len(times) == len(heights)
+        
+    Example:
+    >>> barrow = ephem.Observer()
+    >>> barrow.lat, barrow.lon = '71.36', '-156.7'
+    >>> time1 = ephem.Date((2016, 4, 1, 12, 0, 0))
+    >>> time2 = ephem.Date(time1 + 5)
+    >>> ti, he = fill_in_heights(time1, time2, 0.1, barrow, 'Sun')
+    >>> ti[0]
+    datetime.datetime(2016, 4, 1, 12, 0)
+    >>> he[0]
+    -0.215011881685818
+    >>> ti[-1]
+    datetime.datetime(2016, 4, 6, 12, 0, 0, 864000)
+    >>> he[-1]
+    nan
+    >>> ti[-2]
+    datetime.datetime(2016, 4, 6, 12, 0)
+    >>> he[-2]
+    -0.18191711151931395
+    """
+    times = []
+    heights = []
+    obs = copy_ephem_observer(observe)
+    obs.date = start
+    body = eval('ephem.' + body_name + '(obs)')
+    
+    while obs.date < stop:
+        times.append(obs.date.datetime())
+        
+        body.compute(obs) # compute new body position for the new observer time
+        height_now = np.sin(body.alt) # sin(altitude) of the new body position
+        heights.append(height_now)
+
+        obs.date += step # observer moves forward one time step
+        
+    obs.date = stop  # observer moves to exact stopping time
+    times.append(obs.date.datetime())
+
+    body.compute(obs)
+    height_now = np.sin(body.alt)
+    heights.append(height_now)
+                
+    if append_NaN:
+        times.append(ephem.Date(obs.date + 0.00001).datetime())
+        heights.append(float('NaN'))
+    
+    assert(len(times) == len(heights))        
+    return times, heights
+
+
+
 class Astro:
     """A class with year- and location-specific rise/set/altitude for an
-    astronomical object. Sun and Moon have additional special information.
+    astronomical body. Sun and Moon have additional special information.
     Provies all input required to graph sun, moon, or other astronomical body
     for a Sun * Moon * Tide calendar.
     """
     def __init__(self, latitude: str, longitude: str, timezone: str, year: str,
                  name: str):
         """Take the all necessary inputs and construct plot-ready astronomical
-        object time series for calendar. Attributes are all set and ready for
+        body time series for calendar. Attributes are all set and ready for
         queries and plotting after __init__.
         
         Arguments: (all keyword-only)
-        latitude = latitude in decimal degrees as a string, i.e. '-122.0402'
-        longitude = longitude in decimal degrees as a string, i.e. '36.9577'
+        latitude = latitude in decimal degrees as a string, i.e. '36.9577'
+        longitude = longitude in decimal degrees as a string, i.e. '-122.0402'
         timezone = tzdata/IANA time zone as a string, i.e. 'America/Los_Angeles'
         year = the year desired for the calendar, as a string, i.e. '2016'
         name = the name of the astronomical body as a string, first letter
@@ -106,122 +196,80 @@ class Astro:
         observer.long = ephem.degrees(longitude)
         observer.elevation = 0
         
-        begin, end = utc_year_bounds(timezone, year) #both have type ephem.Date
-        step = (15 / 60) / 24  #15 minute step, in days, for ephem.Date math
+        begin, end = utc_year_bounds(timezone, year)
+        step = 15 * ephem.minute #resolution of full timeseries of body heights
         
-        now = begin
-        # observer's time position is set to the very beginning of the year
-        observer.date = now
-        body = eval('ephem.' + name + '()')
-        risesettimes = []
-        riseorset = []
+        observer.date = begin
+        body = eval('ephem.' + name + '(observer)')
+        '''The body will need to be re-computed every time the observer's
+            date changes. E.g. `body.compute(observer)` '''                
+        
+        '''BUILD THE rise_noon_set TIMESERIES ATTRIBUTE'''
+        r_n_s_times = []
+        r_n_s_labels = []        
+        
+        '''Until the end of the year, get each day's rise, noon/transit, set.'''
+        while observer.date <= end:
+            rns = [(body.rise_time, 'rise'),
+                   (body.transit_time, 'noon'),
+                   (body.set_time, 'set')]
+            '''If any of these could not be computed, i.e. for the Sun above
+            the Arctic Circle in winter or summer, the time will be None.'''
+            for i, t in reversed(list(enumerate(rns))):
+                if t[0] == None:
+                    rns.remove(t)
+            rns.sort()   # ensure chronological order
+            for t in rns:
+                r_n_s_times.append(t[0].datetime())
+                r_n_s_labels.append(t[1])
+            '''Step forward to the next day.'''
+            observer.date += 1
+            body.compute(observer)
+     
+        '''Convert to pandas timeseries with properly localized time index
+        before saving the attribute.'''
+        assert(len(r_n_s_labels) == len(r_n_s_times))
+        RNS = pd.Series(r_n_s_labels, r_n_s_times)
+        RNS.index = RNS.index.tz_localize('UTC')
+        RNS.index = RNS.index.tz_convert(timezone)
+        self.rise_noon_set = RNS
+        
+        '''BUILD THE heights TIMESERIES ATTRIBUTE'''
         alltimes = []
         allheights = []
-        if name == 'Sun':  # set horizon for civil twilight
-            observer.horizon = '-6'
-        
-        '''If the body is already above the horizon at the first datetime of
-        the year, we need to step through time and calculate all the altitude
-        heights until after the first setting. Our loop for the main altitude
-        calculations starts with the next rising event.
-        '''
-        initial_height = eval('np.sin(ephem.' + name + '(observer).alt)')
-        if initial_height >= 0:
-            next_set_time = observer.next_setting(body)
-            if name == 'Sun': # civil twilight
-                next_set_time = observer.next_setting(body, use_center=True)
-            risesettimes.append(next_set_time.datetime())
-            riseorset.append('set')
-            while now <= next_set_time:
-                height_now = eval('np.sin(ephem.' + name + '(observer).alt)')
-                alltimes.append(now.datetime())
-                allheights.append(height_now)
-                now = ephem.Date(now + step)
-                observer.date = now # observer moves forward one time step
-            
-            now = next_set_time
-            observer.date = now  # observer moves to exact setting time
-            height_now = eval('np.sin(ephem.' + name + '(observer).alt)')
-            alltimes.append(now.datetime())
-            allheights.append(height_now)
-                    
-            # append NaN so that plots will not draw line between set and rise
-            alltimes.append(ephem.Date(now + 0.00001).datetime())
-            allheights.append(float('NaN'))
+
+        RNS.index = RNS.index.tz_convert('UTC') # back to UTC for calculations        
+        allrises = RNS[RNS == 'rise']
+        allsets = RNS[RNS == 'set']
                 
-        ''' MAIN ASTRO ALTITUDE CALCULATIONS LOOP
-        Now we are ready to start at the first body rising event of the year.
-        This loop exits after it has gone past the end of the year.
-        FOR SUN: Rises and sets are computed with use_center flag set True and
-        observer horizon = -6, to use civil dawn and dusk as rise and set.
-
-        Outline of this loop body:
-            - compute the next time the body rises, save in rise-set lists
-            - move observer forward in time to body rise time
-            - computer the next time the body sets, save in rise-set lists
-            - step observer through from rise time to set time,
-                calculating height of the body at each time step,
-                saving in alltimes/allheights lists
-            - repeat until observer has gone past the end of the year
+        if allsets.index[0] < allrises.index[0]:
+            '''Handle case of body already risen at begin time of the year.'''
+            times, heights = fill_in_heights(begin, ephem.Date(allsets.index[0]),
+                                             step, observer, name)
+            alltimes.extend(times)
+            allheights.extend(heights)
+            allsets = allsets[1:]  # remove the first set time since unpaired
         
-        NaN (not a number) values are appended just after each setting time,
-        so that plotted curves will break between each setting and next rising.
-        Otherwise we would have ugly flat lines in between.
-        '''
-        print(observer)
-        print(body)
-        while now <= end:
-            next_rise_time = observer.next_rising(body)
-    ##@@@@@@@@@@@ BUGS.
-            '''
-            <ephem.Observer date='2016/1/1 08:00:00'>
-ephem.NeverUpError: 'Sun' transits below the horizon at 2016/1/1 09:35:26
-ephem.AlwaysUpError: 'Moon' is still above the horizon at 2016/1/1 15:05:52
-            '''
-            if name == 'Sun': # civil twilight
-                next_rise_time = observer.next_rising(body, use_center=True)
-            risesettimes.append(next_rise_time.datetime())
-            riseorset.append('rise')
-            now = next_rise_time
-            observer.date = now  # observer moves forward in time to next rise
-            next_set_time = observer.next_setting(body)
-            if name == 'Sun': # civil twilight
-                next_set_time = observer.next_setting(body, use_center=True)
-            risesettimes.append(next_set_time.datetime())
-            riseorset.append('set')
+        if len(allrises) > len(allsets):
+            allrises = allrises[:-1]  # remove the trailing rise time (unpaired)
             
-            # Loop to append all times/height between this rise and set
-            while now <= next_set_time:
-                height_now = eval('np.sin(ephem.' + name + '(observer).alt)')
-                alltimes.append(now.datetime())
-                allheights.append(height_now)
-                now = ephem.Date(now + step)
-                observer.date = now  # observer moves forward one time step
-            
-            # now we are slightly past the current setting time...
-            # go back to the exact setting time and append its info
-            now = next_set_time
-            observer.date = now  # observer moves to exact setting time
-            height_now = eval('np.sin(ephem.' + name + '(observer).alt)')
-            alltimes.append(now.datetime())
-            allheights.append(height_now)
-            
-            # append NaNs so that plots will not draw line between set and rise
-            alltimes.append(ephem.Date(now + 0.000001).datetime())
-            allheights.append(float('NaN'))
-
-        '''Now we need to convert our lists with datetimes into a
-        pandas timeseries. pandas.Series(values,times). Then save as attributes.
-        We can't naively pass the ephem.Date objects into pandas index, it will
-        save them as Float64Index. We also need to localize back to local timezone.
-        '''
-        assert(len(riseorset) == len(risesettimes))
+        assert(len(allrises) == len(allsets))
+        
+        for rise_time, set_time in zip(allrises.index, allsets.index):
+            rise_t = ephem.Date(rise_time)
+            set_t = ephem.Date(set_time)
+            times, heights = fill_in_heights(rise_t, set_t, step, observer, name)
+            alltimes.extend(times)
+            allheights.extend(heights)
+        
+        '''Convert to pandas timeseries with properly localized time index
+        before saving the attribute.'''
         assert(len(allheights) == len(alltimes))
-        self.rises_sets = pd.Series(riseorset, risesettimes)
-        self.rises_sets.index = self.rises_sets.index.tz_convert(self.timezone)
-        self.heights = pd.Series(allheights, alltimes)
-        self.heights.index = self.heights.index.tz_convert(self.timezone)
-
+        HEI = pd.Series(allheights, alltimes)
+        HEI.index = HEI.index.tz_localize('UTC')
+        HEI.index = HEI.index.tz_convert(timezone)
+        self.heights = HEI
+     
 
 if __name__ == "__main__":
     import doctest
