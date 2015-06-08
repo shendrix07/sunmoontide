@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """This module builds Tides objects from NOAA Annual Tide Prediction text
 files, with helper functions that may be useful in other applications.
+Search for `&**&` to find code segments that assume a certain format for the
+NOAA text file input. Last updated 6/8/2015 by Sara Hendrix.
 """
 
 import itertools
@@ -26,45 +28,34 @@ def sine_interp(height1, height2, resolution, remove_end=False):
         height2 (float): the ending height
         resolution (int):  the resolution desired (length of returned array)
                            must be >2
-
         OPTIONAL:
         remove_end (boolean): if True, the function removes the last element
                               (height2) of the result. This can be useful when
                               appending subsequent high/low interpolations.
         
     Returns:
-    For default optional argument (`remove_end=False`):
+    For default optional argument (remove_end = False):
         y: a 1D array of floats with length `resolution`.
         y[0] == height1, y[res-1] == height2
-    If optional argument is passed as True (`remove_end = True`):
+    If optional argument remove_end = True:
         y will instead have length `resolution`-1; the final value is removed.
     y will be a peak-to-trough half wave for height1 > height2,
         a trough-to-peak half wave for height1 < height2,
         and a flat line for height1 == height2.
 
-    Asserts:
-        Preconditions: Args all have usable types
-        Postconditions: y has correct length and endpoints
-        Floating point equality when the numbers are equal to 8 decimal places
-        
-    Examples: (using `print` to round off for the floats)
-    
+    Examples:
     >>> yy = sine_interp(-1.2, -6.2, 5)
     >>> print(yy)
     [-1.2        -1.93223305 -3.7        -5.46776695 -6.2       ]
-    
     >>> yy = sine_interp(6.2, 1.2, 5)
     >>> print(yy)
     [ 6.2         5.46776695  3.7         1.93223305  1.2       ]
-    
     >>> yy = sine_interp(-6.2, -1.2, 5)
     >>> print(yy)
     [-6.2        -5.46776695 -3.7        -1.93223305 -1.2       ]
-    
     >>> yy = sine_interp(-6.2, -1.2, 5, True)
     >>> print(yy)
     [-6.2        -5.46776695 -3.7        -1.93223305]
-    
     """
     h1 = float(height1)
     h2 = float(height2)
@@ -76,16 +67,15 @@ def sine_interp(height1, height2, resolution, remove_end=False):
 
     if h1 < h2:
         # -pi/2 to pi/2 => trough-to-peak
-        xtmp = np.linspace(-math.pi / 2., math.pi / 2., resolution)
+        x = np.linspace(-math.pi / 2., math.pi / 2., resolution)
     else:
         # pi/2 to (3/2)*pi => peak-to-trough
-        xtmp = np.linspace(math.pi / 2., (3. / 2.) * math.pi, resolution)
+        x = np.linspace(math.pi / 2., (3. / 2.) * math.pi, resolution)
     
-    y = amp * np.sin(xtmp) + bump
+    y = amp * np.sin(x) + bump
     
-    # postconditions
-    # rounding to 8 decimal places for float comparison
-    assert(round(y[0], 8) == round(h1, 8))
+    # postconditions; round to 8 decimal places for float comparison
+    assert(round(y[0], 8) == round(height1, 8))
     assert(len(y) == resolution)
     assert(round(y[resolution-1], 8) == round(height2, 8))
 
@@ -176,7 +166,7 @@ def lookup_station_info(StationID):
     station_info.csv and return the information in a dict.
     
     station_info.csv has the following columns:
-    StationID,StationName,State,Latitude,Longitude,StationType,Timezone
+    StationID, StationName, State, Latitude, Longitude, StationType, Timezone
         
     Args:
         StationID (string): a NOAA station ID code.
@@ -196,18 +186,18 @@ def lookup_station_info(StationID):
     try:
         lookup = pkgutil.get_data('tides', 'station_info.csv')
     except Exception as e:
-        print('In Tides, lookup_station_info could not find station_info.csv.')
-        raise
+        error_message = ('In Tides, lookup_station_info could not find ' +
+            'its lookup file, station_info.csv. Error: ' + e)
+        raise IOError(error_message)
 
     all_data = pd.read_csv(BytesIO(lookup), index_col=0)
     try:
         station_data = all_data.loc[StationID]
     except Exception as e:
-        print('In Tides, lookup_station_info could not find Station ID ' + 
-            StationID)
-        print(e)
-        print('Make sure ' + StationID + ' is present in station_info.csv.')
-        raise
+        error_message = ('In Tides, lookup_station_info could not find ' +
+        'Station ID ' + StationID + ' in its lookup dataset. Error: ' + e +
+        '... Make sure ' + StationID + ' is present in station_info.csv.')
+        raise ValueError(error_message)
             
     info = {}
     info['st_id']     = StationID
@@ -280,15 +270,16 @@ def build_all_tides(raw_tides, resolution, use_column):
     return all_tides
 
 
+
 class Tides:
-    """A class with everything related to a NOAA tide prediction file - all the
-    input required to graph tidal plots and provide station information for a
-    Sun * Moon * Tide calendar.
+    """A class with everything related to a NOAA annual tide prediction file.
+    Purpose is to calculate and then store the various input required to graph
+    tides and provide station information for a Sun * Moon * Tide calendar.
     """
     def __init__(self, NOAA_filename):
         """Take the filename and build everything that needs to be built.
         After this is done, all attributes are set and everything is ready for
-        plotting and informational queries.
+        plotting and queries.
         """
         metadata, col_names = read_noaa_header(NOAA_filename)
         self.station_id = metadata['Stationid'].strip() # &**& format dependant
@@ -302,8 +293,8 @@ class Tides:
         num_rows_to_skip = len(metadata) + 2
         resolution = 20        
         
-# Read annual tide table into pandas DataFrame. NOTE: &**& format dependant
-# The major input-format-dependant piece is the main data column name = 'ft'
+# ------------ Read annual tide table into pandas DataFrame--------------
+# NOTE: &**& format dependant - main high/low data column name = 'ft'
         rawtides = pd.read_csv(NOAA_filename,
                        names = ['Date', 'Day', 'Time', 'AM/PM', 
                                 'ft', 'cm', 'High/Low'],
@@ -344,6 +335,7 @@ class Tides:
         # time offsets are in minutes + or -
         self.time_offset_low = metadata['TimeOffsetLow'].strip()
         self.time_offset_high = metadata['TimeOffsetHigh'].strip()
+
 
 
 if __name__ == "__main__":
