@@ -173,17 +173,13 @@ def fill_in_heights(start, stop, step, observe, body_name, append_NaN = True):
     return times, heights
     
     
-def get_lunation_day(today, last_new, next_new, number_of_phase_ids=28):
-    '''Given today's date, the last new moon, and the next new moon, return a
-    lunar cycle day ID number (integer in [0:(number_of_phase_ids - 1)]),
-    corresponding to the lunation for today. 0 = new moon.
+def get_lunation_day(today, number_of_phase_ids=28):
+    '''Given a date (of type ephem.Date), return a lunar cycle day ID number
+    (integer in [0:(number_of_phase_ids - 1)]), corresponding to the lunation
+    for the given date. 0 = new moon.
     
     Arguments:
         today (ephem.date): the date for which to get the lunation day number
-        last_new (ephem.date): the date of the last new moon before "today",
-            which can be calculated via ephem.previous_new_moon(today)
-        next_new (ephem.date): the date of the next new moon after "today",
-            which can be calculated via ephem.next_new_moon(today)
 
     Optional:
         number_of_phase_ids (integer, default = 28): the number of unique
@@ -197,6 +193,8 @@ def get_lunation_day(today, last_new, next_new, number_of_phase_ids=28):
     The lunation day is calibrated to the quarter phases
     calculated by pyephem, but it does not always agree exactly with
     percent illumination, which is a different calculation entirely.'''
+    last_new = ephem.previous_new_moon(today)
+    next_new = ephem.next_new_moon(today)
     num = number_of_phase_ids - 1
     first_approx = round((today - last_new) / (next_new - last_new) * num)
     if first_approx < np.ceil(num / 4):
@@ -373,24 +371,10 @@ class Astro:
             assert(len(illuminated) == len(daily_times))
             self.percent_illuminated = pd.Series(illuminated, daily_times)
             
-            '''Assuming 28 days of moon phase icons, get cycle day number.
-            First, figure out cycle day of Jan 1, then step through until
-            the first new moon of the year.'''
             cycle_days = []            
             moon_day = begin + 22 * ephem.hour   # 10 pm local time Jan 1
-            last_nm = ephem.previous_new_moon(moon_day)
-            next_nm = ephem.next_new_moon(moon_day)
-            cycle_days.append(get_lunation_day(moon_day, last_nm, next_nm))
-            moon_day += 1
-            while moon_day < next_nm:
-                cycle_days.append(get_lunation_day(moon_day, last_nm, next_nm))
-                moon_day += 1
-            '''Now we can go through complete lunar cycles until end of year.'''
             while moon_day < end:
-                last_nm = next_nm
-                next_nm = ephem.next_new_moon(moon_day)
-                while (moon_day < next_nm) and (moon_day < end):
-                    cycle_days.append(get_lunation_day(moon_day, last_nm, next_nm))
+                    cycle_days.append(get_lunation_day(moon_day))
                     moon_day += 1
             assert(len(cycle_days) == len(daily_times))
             self.phase_day_num = pd.Series(cycle_days, daily_times)

@@ -23,7 +23,8 @@ print('Sun calculations complete')
 moon = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'Moon')
 print('Moon calculations complete')
 
-# pickle sun, moon, tides
+# save sun, moon, tides in pickle or json in a new folder
+# ?? make new folder ??
 #with open('sun_moon_tide_data.pickle', 'wb') as f:
 #    pickle.dump([sun, moon, tides], f, pickle.HIGHEST_PROTOCOL)
 #print('Computations complete, pickled in @@@wherever.')
