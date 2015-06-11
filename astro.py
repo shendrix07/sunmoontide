@@ -246,102 +246,20 @@ class Astro:
         observer.lat = ephem.degrees(latitude)
         observer.long = ephem.degrees(longitude)
         observer.elevation = 0
-        
         begin, end = utc_year_bounds(timezone, year)
         step = 10 * ephem.minute #resolution of full timeseries of body heights
         
-        observer.date = begin
-        body = eval('ephem.' + name + '(observer)')
-        '''The body will need to be re-computed every time the observer's
-            date changes. E.g. `body.compute(observer)` '''                
-            
-# -------------- Build the rise_noon_set timeseries --------------------
-        r_n_s_times = []
-        r_n_s_labels = []        
-        if name == 'Sun':
-            transit_label = 'noon'
-        else:
-            transit_label = 'max height'
-
-        '''For each day of the year, get times for rise, transit, set.'''        
-        while observer.date <= end:
-            rns = [(body.rise_time, 'rise'),
-                   (body.transit_time, transit_label),
-                   (body.set_time, 'set')]
-            '''If any of these could not be computed, i.e. for the Sun above
-            the Arctic Circle in winter or summer, the time will be None.'''
-            for t in reversed(list(rns)):
-                if t[0] == None:
-                    rns.remove(t)
-            rns.sort()   # ensure chronological order
-            for t in rns:
-                r_n_s_times.append(t[0].datetime())
-                r_n_s_labels.append(t[1])
-            '''Step forward to the next day.'''
-            observer.date += 1
-            body.compute(observer)
-     
-        '''Convert to pandas timeseries with properly localized time index
-        before saving the attribute.'''
-        assert(len(r_n_s_labels) == len(r_n_s_times))
-        r_n_s = pd.Series(r_n_s_labels, r_n_s_times)
-        r_n_s.index = r_n_s.index.tz_localize('UTC')
-        r_n_s.index = r_n_s.index.tz_convert(timezone)
-        self.rise_noon_set = r_n_s
-        
-# -------------- Build the heights timeseries --------------------
-        alltimes = []
-        allheights = []
-
-        RNS = r_n_s.copy() # make a copy so we don't change rise_noon_set
-        RNS.index = RNS.index.tz_convert('UTC') # back to UTC for calculations        
-        allrises = RNS[RNS == 'rise']
-        allsets = RNS[RNS == 'set']
-                
-        if allsets.index[0] < allrises.index[0]:
-            '''Handle case of body already risen at begin time of the year.'''
-            first_set = ephem.Date(allsets.index[0])
-            times, heights = fill_in_heights(begin, first_set, step,
-                                             observer, name)
-            alltimes.extend(times)
-            allheights.extend(heights)
-            '''Remove first_set time from allsets,
-            to prepare for iteration with allrises.'''
-            allsets = allsets[1:]
-                
-        for rise_time, set_time in zip(allrises.index, allsets.index):
-            '''The main loop, get heights between rise->set pairs.'''
-            rise_t = ephem.Date(rise_time)
-            set_t = ephem.Date(set_time)
-            assert(rise_t < set_t)
-            times, heights = fill_in_heights(rise_t, set_t, step,
-                                             observer, name)
-            alltimes.extend(times)
-            allheights.extend(heights)
-        
-        '''Check whether an extra/leftover rise time before end of the year.
-        If so, it was left out of the rise-set pairs loop above.'''        
-        have_trailing_rise_time = ((len(allrises) > len(allsets)) and 
-                (allrises.index[-1] < pd.Timestamp(end).tz_localize('UTC')))
-        if have_trailing_rise_time:
-            '''Handle case where body is still up at end of the year.'''
-            last_rise = ephem.Date(allrises.index[-1])
-            times, heights = fill_in_heights(last_rise, end, step,
-                                             observer, name)
-            alltimes.extend(times)
-            allheights.extend(heights)
-        
-        '''Convert to pandas timeseries, clean it up, and localize the time
-        index before saving the attribute.'''
+        alltimes, allheights = fill_in_heights(begin, end, step,
+                                             observer, name, append_NaN=False)        
+        '''Convert to pandas timeseries and localize the time index.'''
         assert(len(allheights) == len(alltimes))
         hei = pd.Series(allheights, alltimes)
-        '''Get rid of any negative heights we might have lying around.'''
-        hei[hei < 0] = float('NaN')
         hei.index = hei.index.tz_localize('UTC')
         hei.index = hei.index.tz_convert(timezone)
         self.heights = hei
 
 # ----------------- Special attributes for Sun and Moon ----------------
+
         '''Equinox and solstice events for Sun'''
         if name == 'Sun':
             spring = ephem.next_spring_equinox(year)
@@ -359,13 +277,14 @@ class Astro:
 
         '''Daily phase (% illuminated, 28-day icon ID) for Moon'''
         if name == 'Moon':
+            moon = ephem.Moon()
             illuminated = []
             observer.date = begin + 22 * ephem.hour  # 10 pm local time Jan 1
-            body.compute(observer)
+            moon.compute(observer)
             while observer.date < end:
-                illuminated.append(body.moon_phase)
+                illuminated.append(moon.moon_phase)
                 observer.date += 1
-                body.compute(observer)
+                moon.compute(observer)
             daily_times = pd.date_range(year + '-01-01', year + '-12-31', 
                                       tz = timezone)
             assert(len(illuminated) == len(daily_times))

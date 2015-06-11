@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from tides import Tides
 from astro import Astro
-#?? Graphics module import
+from cal_draw import generate_annual_calendar
 import argparse
 import os
 #import pickle
@@ -29,9 +29,9 @@ print('Moon calculations complete')
 #    pickle.dump([sun, moon, tides], f, pickle.HIGHEST_PROTOCOL)
 #print('Computations complete, pickled in @@@wherever.')
 
-print('@@@Starting to draw calendar now.')
-# Call graphics stuff to make the output
+print('Starting to draw calendar now.')
+generate_annual_calendar(tides, sun, moon, 'testcal')
 # @@@@@@@
 #
 #
-print('Calendar complete. Find output in new folder, @@@@')
+print('Calendar complete. Find output testcal.pdf @@@@')
