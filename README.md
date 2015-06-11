@@ -26,10 +26,13 @@ The NOAA predictions can be updated over time. It is good to download the input 
 
 2. Move the file into the directory where the unzipped package (a folder named "calendar") is located. Rename the NOAA input file to a filename that contains no spaces - I will call it `your_filename`. It doesn’t need to have a file extension, though \*.txt can be handy if you want to easily click open the file to look at it yourself.
 
-3. Open a terminal and cd into the aforementioned directory. You are in the right place if `ls` shows you a directory named `calendar` and a file called `your_filename` (whatever you named it). Now run "calendar your_filename" from the command prompt:
-    python calendar <your_filename>
+3. Open a terminal and cd into the aforementioned directory. You are in the right place if `ls` shows you a directory named `calendar` and a file called `your_filename` (whatever you named it). Now tell python to run `calendar your_filename`:
+
+`$ python calendar <your_filename>`
+
 Or if you usually work in python 2, your defaults probably require:
-    python3 calendar <your_filename>
+
+`$ python3 calendar <your_filename>`
 
 --------
 ### If NOAA file format changes:
