@@ -21,26 +21,26 @@ The NOAA predictions can be updated over time. It is good to download the input 
 ### Step by step instructions:
 
 0. Make sure you have Python 3.4+ installed properly, along with all the packages listed in Requirements. Unzip the package and make sure the following relative directory structure has been retained:
-	calendar\
-		__init__.py
-		__main__.py
-		astro.py
-		cal_draw.py
-		example_noaa_file.TXT
-		graphics_fonts\
-			moon_phases\
-				LICENSE.TXT
-				moon_phases.ttf
-			Sun_blue_icon.svg
-			Sun_green_icon.svg
-			Sun_icon.svg
-			Sun_orange_icon.svg
-			@@@@@@@logo, cover art, annotated legend file
-		LICENSE
-		README.md
-		station_info.csv
-		tides.py
-
+`   calendar\
+     __init__.py
+     __main__.py
+     astro.py
+     cal_draw.py
+     example_noaa_file.TXT
+     graphics_fonts\
+       moon_phases\
+         LICENSE.TXT
+         moon_phases.ttf
+       Sun_blue_icon.svg
+       Sun_green_icon.svg
+       Sun_icon.svg
+       Sun_orange_icon.svg
+       @@@@@@@logo, cover art, annotated legend file
+     LICENSE
+     README.md
+     station_info.csv
+     tides.py
+'
 1. Following the links/tips above, find your NOAA tide station of interest, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions.
 
 2. Move the NOAA annual text file into the parent directory of the calendar directory. Rename the NOAA file to a filename that contains no spaces - I will call it `your_filename` here. It doesn’t need to have a file extension, though \*.txt can be handy if you want to click open the file to look at it yourself.

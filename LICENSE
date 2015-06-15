@@ -15,7 +15,7 @@ towards commercial advantage or monetary compensation. Exchange by digital
 file-sharing or similar means is Non-Commercial provided there is no payment
 of monetary compensation in connection with the exchange.
 
-2) Any distribution, sharing, posting, or public display of the software or
+2) Any distribution, sharing, posting, or public display of the Software or
 its end products, whether in original or modified forms, must identify the
 creator as CruzViz and Sara Hendrix (“Attribution”). For calendars and other
 graphical and/or textual end products, Attribution is accomplished by one or
@@ -31,12 +31,12 @@ Attribution of the original creator, indicate the author of the modifications.
 Additionally, any such indication must retain the indications of all previous
 authors.
 
-4) The Moon Phase font distributed with this Software is copyrighted by Curtis
-Clark. Sara Hendrix and CruzViz retains a commercial license for this font.
-Any and all use of the Software that includes use of the Moon Phase font must
-abide by the terms of the Moon Phase font license agreement. The license is
-distributed with the moon_phases.ttf file as LICENSE.TXT inside the moon_phases
-subdirectory.
+4) The Moon Phase font distributed with the Software is copyrighted by Curtis
+Clark. Sara Hendrix of CruzViz retains a commercial license for this font. Any
+and all use of the Software that includes use of the Moon Phase font must
+abide by the terms of the Moon Phase font license. The Moon Phase font license
+is distributed with the Software as follows:
+calendar/graphics_fonts/moon_phases/LICENSE.TXT.
 
 5) The above copyright notice and this permission notice shall be included in
 all copies or substantial portions of the Software.
