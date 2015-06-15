@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-Functions for drawing a Sun * Moon * Tide calendar using matplotlib. Main
+Module for drawing a Sun * Moon * Tide calendar using matplotlib. Main
 function is generate_annual_calendar(t, s, m, filename), where t: Tides object,
 s: Astro object (Sun), m: Astro object (Moon), and filename: string. Various
 helper functions may also be useful for other purposes.
 """
+import matplotlib
+matplotlib.use('PDF')
 import matplotlib.pyplot as plt
+plt.ioff()
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
 def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
-    '''Take tide, sun, and moon objects and generate a PDF file (named
-    file_name) with the complete annual Sun * Moon * Tide calendar. File saved
-    to current working directory.
+    '''Take tide, sun, and moon objects and generate a PDF file named
+    file_name, which is a complete annual Sun * Moon * Tide calendar. File is
+    saved to current working directory. Verbose output since this is a slow
+    function.
     
     Args:
     t: Tides object, s: Astro object (Sun), m: Astro object (Moon)
@@ -21,8 +25,7 @@ def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
     t = tide_obj.all_tides
     s = sun_obj.heights
     m = moon_obj.heights
-    t_min = tide_obj.annual_min
-    t_max = tide_obj.annual_max
+    t_min, t_max = tide_obj.annual_min, tide_obj.annual_max
     place = tide_obj.station_name + ", " + tide_obj.state
 
     pdf_out = PdfPages(file_name)
@@ -31,7 +34,7 @@ def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
         this_month = tide_obj.year + "-" + "{:0>2}".format(i)
         monthfig = month_page(t[this_month], s[this_month], m[this_month],
                               t_min, t_max, place)
-        print("Month " + str(i) + "drawn, now saving...")
+        print("Month " + str(i) + " figure created, now saving...")
         monthfig.savefig(pdf_out, format='pdf')
         print("Saved month " + str(i))
     
