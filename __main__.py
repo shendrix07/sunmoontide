@@ -18,9 +18,9 @@ print('Making Sun * Moon * Tides Calendar with ' +
 
 tides = Tides(args.filename)
 print(tides.station_name + ', ' + tides.state)
-sun = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'Sun')
+sun = Astro(str(tides.latitude), str(tides.longitude), tides.timezone, tides.year, 'Sun')
 print('Sun calculations complete')
-moon = Astro(tides.latitude, tides.longitude, tides.timezone, tides.year, 'Moon')
+moon = Astro(str(tides.latitude), str(tides.longitude), tides.timezone, tides.year, 'Moon')
 print('Moon calculations complete')
 
 # save sun, moon, tides in pickle or json in a new folder

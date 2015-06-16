@@ -6,6 +6,7 @@ useful in other applications.
 """
 import matplotlib
 matplotlib.use('PDF')
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 plt.ioff()
 from matplotlib.backends.backend_pdf import PdfPages
@@ -47,40 +48,81 @@ def month_page(month_of_tide, month_of_sun, month_of_moon, tide_min, tide_max,
     and returns a matplotlib.pyplot Figure object containing a month of the
     Sun * Moon * Tide calendar.
     '''
-    # initialize figure and attach canvas to fig
-    fig = plt.Figure()
-    fig.set_canvas(plt.gcf().canvas)
+    # initialize figure
+    fig = plt.figure(figsize=(8.5,11))
     
     # the zero lines for each variable to be plotted
     Tz = np.zeros(len(month_of_tide.index))
     Sz = np.zeros(len(month_of_sun.index))
     Mz = np.zeros(len(month_of_moon.index))
     
-    #take the first few days to begin
     year_month_prefix = month_of_tide.index[0].to_pydatetime().strftime('%Y-%m-')
-    first_day = year_month_prefix + '15'
-    last_day = year_month_prefix + '19'
     month_title = month_of_tide.index[0].to_pydatetime().strftime('%B')
     
     # ------------------- SNIP -------------------------
-    # sun and moon heights on top
-    ax1 = plt.subplot(211)
-    plt.fill_between(month_of_sun.index, month_of_sun, Sz,
-                     color='#FFEB00', alpha=1)
-    plt.fill_between(month_of_moon.index, month_of_moon, Mz,
-                     color='#D7A8A8', alpha=0.2)
-    plt.title(month_title + ' 15-18 in ' + place_name)
-    plt.axis([first_day, last_day, 0, 1])
-    plt.setp(ax1.get_xticklabels(), visible=False)
-    plt.setp(ax1.get_yticklabels(), visible=False)
+    def _plot_a_week(week_number, start_time, stop_time):
+        '''Internal function. Works on pre-defined gridspec gs and assumes
+        variables like tide_min, tide_max, month_of_tide/moon/sun already
+        defined in outer scope.
+        Week numbers start at 1 for the first week of the month and can go up
+        to 6.'''
+        
+        if week_number == 1:
+            gs_ind_1, gs_ind_2 = 0, 1
+        elif week_number == 2:
+            gs_ind_1, gs_ind_2 = 2, 3
+        elif week_number == 3:
+            gs_ind_1, gs_ind_2 = 4, 5
+        elif week_number == 4:
+            gs_ind_1, gs_ind_2 = 6, 7
+        elif week_number == 5:
+            gs_ind_1, gs_ind_2 = 8, 9
+        elif week_number == 6:
+            gs_ind_1, gs_ind_2 = 10, 11
+        
+        # sun and moon heights on top
+        ax1 = plt.subplot(gs[gs_ind_1,0])
+        ax1.fill_between(month_of_sun.index, month_of_sun, Sz,
+                         color='#FFEB00', alpha=1)
+        ax1.fill_between(month_of_moon.index, month_of_moon, Mz,
+                         color='#D7A8A8', alpha=0.2)
+        ax1.axis([start_time, stop_time, 0, 1])
+        ax1.set_xticks([])
+        ax1.set_yticks([])
+        for axis in ['top','left','right']:
+            ax1.spines[axis].set_linewidth(1.5)
+        ax1.spines['bottom'].set_visible(False)
+        
+        # tide magnitudes below
+        ax2 = plt.subplot(gs[gs_ind_2,0])
+        ax2.fill_between(month_of_tide.index, month_of_tide, Tz,
+                         color='#52ABB7', alpha=0.8)
+        ax2.axis([start_time, stop_time, tide_min, tide_max])
+        ax2.set_xticks([])
+        ax2.set_yticks([])
+        for axis in ['bottom','left','right']:
+            ax2.spines[axis].set_linewidth(1.5)
+        ax2.spines['top'].set_linewidth(0.5)
     
-    # tide magnitudes below
-    ax2 = plt.subplot(212)
-    plt.fill_between(month_of_tide.index, month_of_tide, Tz,
-                     color='#52ABB7', alpha=0.8)
-    plt.axis([first_day, last_day, tide_min, tide_max])
-    plt.setp(ax2.get_xticklabels(), visible=False)
-    plt.setp(ax2.get_yticklabels(), visible=False)
-    # ---------------------------------------------------
+        
+    gs = gridspec.GridSpec(8, 1, hspace=0.0)
+    
+    w1_first = year_month_prefix + '01 00:00'
+    w1_last = year_month_prefix + '07 23:59'
+    w2_first = year_month_prefix + '08 00:00'
+    w2_last = year_month_prefix + '14 23:59'
+    w3_first = year_month_prefix + '15 00:00'
+    w3_last = year_month_prefix + '21 23:59'
+    w4_first = year_month_prefix + '22 00:00'
+    w4_last = year_month_prefix + '28 23:59'
+    
 
+    _plot_a_week(1, w1_first, w1_last)
+    _plot_a_week(2, w2_first, w2_last)
+    _plot_a_week(3, w3_first, w3_last)
+    _plot_a_week(4, w4_first, w4_last)
+
+    # ---------------------------------------------------
+    fig.suptitle(month_title + ' in ' + place_name, fontsize='x-large',
+                 fontname='Foglihten')
     return fig
