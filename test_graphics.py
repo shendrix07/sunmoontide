@@ -20,9 +20,6 @@ moon = Astro(mytides.latitude, mytides.longitude, mytides.timezone, mytides.year
 import matplotlib.pyplot as plt
 import numpy as np
 
-fig = plt.Figure()
-fig.set_canvas(plt.gcf().canvas)
-
 t = mytides.all_tides
 t_jul = t['2015-07']
 t_nov = t['2015-11']
@@ -43,19 +40,3 @@ Mzn = np.zeros(len(m_nov.index))
 Szj = np.zeros(len(s_jul.index))
 Szn = np.zeros(len(s_nov.index))
 
-ax1 = plt.subplot(211)
-
-plt.fill_between(s_jul.index, s_jul, Szj, color='#FFEB00', alpha=1)
-plt.fill_between(m_jul.index, m_jul, Mzj, color='#D7A8A8', alpha=0.2)
-plt.axis(['2015-07-17', '2015-07-19', 0, 1])
-plt.title('July in Santa Cruz')
-plt.ylabel('Height in Sky')
-plt.setp(ax1.get_xticklabels(), visible=False)
-
-ax2 = plt.subplot(212)
-plt.fill_between(t_jul.index, t_jul, Tzj, color='#45B1C4', alpha=0.9)
-plt.axis(['2015-07-17', '2015-07-19', mytides.annual_min, mytides.annual_max])
-plt.ylabel('Tides')
-plt.setp(ax2.get_xticklabels(), visible=False)
-
-fig.savefig("foo3" + ".pdf", format='pdf')
