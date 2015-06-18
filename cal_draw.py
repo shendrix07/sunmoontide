@@ -117,6 +117,9 @@ def month_page(month_of_tide, month_of_sun, month_of_moon, tide_min, tide_max,
         for axis in ['top','left','right']:
             ax1.spines[axis].set_linewidth(1.5)
         ax1.spines['bottom'].set_visible(False)
+        plt.text(0.05, 0.73, day_of_sun.index[0].day, ha = 'left',
+                 fontsize = 14, fontname = 'Foglihten',
+                 transform = ax1.transAxes)
         
         # tide magnitudes below
         ax2 = plt.subplot(gs[grid_index + 7])
