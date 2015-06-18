@@ -69,6 +69,7 @@ def month_page(month_of_tide, month_of_sun, month_of_moon, tide_min, tide_max,
     # initialize figure
     fig = plt.figure(figsize=(8.5,11))
     
+    # grab strings for identifying this month
     year_month = month_of_tide.index[0].to_pydatetime().strftime('%Y-%m')
     month_title = month_of_tide.index[0].to_pydatetime().strftime('%B')
     year_title = month_of_tide.index[0].to_pydatetime().strftime('%Y')
@@ -78,10 +79,12 @@ def month_page(month_of_tide, month_of_sun, month_of_moon, tide_min, tide_max,
         '''Internal function. Works on pre-defined gridspec gs and assumes
         variables like tide_min, tide_max, month_of_tide/moon/sun already
         defined in outer scope.
+        
         Plots the two daily subplots for `date` in gridspec coordinates
-        gs[gridx, gridy] for the sun/moon and gs[gridx, gridy + 1] for tide.
-        `date` must be in a form pandas recognizes for datetime slicing.
-        i.e. '2015-07-18'
+        gs[grid_index] for the sun/moon and gs[grid_index + 7] for tide.
+        `date` must be a string in %Y-%m-%d format, i.e. '2015-07-18'.
+        
+        Returns ax1, ax2 = sun/moon (ax1) and tide (ax2) subplots handles
         '''
         day_of_sun = month_of_sun[date]
         day_of_moon = month_of_moon[date]
@@ -125,22 +128,48 @@ def month_page(month_of_tide, month_of_sun, month_of_moon, tide_min, tide_max,
         for axis in ['bottom','left','right']:
             ax2.spines[axis].set_linewidth(1.5)
         ax2.spines['top'].set_linewidth(0.5)
-    
         
-    gs = gridspec.GridSpec(12, 7, wspace = 0.0, hspace = 0.0)
+        return ax1, ax2
     
-    # call _plot_a_date in correct grid location
-    gridnum = (pd.to_datetime(year_month + '-01').dayofweek + 1) % 6
+    
+# ---------------- build grid of daily plots ---------------------
+    gs = gridspec.GridSpec(12, 7, wspace = 0.0, hspace = 0.0)
+    daily_axes = [] # daily_axes[i] will hold sun/moon axes for date i+1
+
+    # dayofweek = The day of the week with Monday=0, Sunday=6    
+    init_day = (pd.to_datetime(year_month + '-01').dayofweek + 1) % 7
+    gridnum = init_day
     for day in days_in_month(year_month):
-        _plot_a_date(gridnum, day)
-        # dayofweek = The day of the week with Monday=0, Sunday=6
+        ax, _ = _plot_a_date(gridnum, day)
+        daily_axes.append(ax)
         if pd.to_datetime(day).dayofweek == 5: # if just plotted a Saturday
             gridnum += 8  # skip down a week to leave tide subplots intact
         else:
             gridnum += 1
 
+    fig.subplots_adjust(left=0.05, right=0.95,
+                        bottom=0.1, top=0.8,
+                        hspace=0.0, wspace=0.0)
 
     # add annotations and titles
-    fig.suptitle(month_title + '   ' + year_title, size='72',
-                 fontname='Foglihten')
+    day_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
+                 'Friday', 'Saturday']
+    for i in range(init_day, 7):
+        plt.text(0.5, 1.08, day_names[i],
+                 horizontalalignment='center',
+                 fontsize=12, fontname='Foglihten',
+                 transform = daily_axes[i - init_day].transAxes)
+    for i in range(init_day):
+        temp_ax = plt.subplot(gs[i])
+        temp_ax.axis('off')
+        plt.text(0.5, 1.08, day_names[i],
+                     horizontalalignment='center',
+                     fontsize=12, fontname='Foglihten',
+                     transform = temp_ax.transAxes)
+
+
+    fig.text(0.5, 0.875, month_title + '   ' + year_title, 
+             horizontalalignment='center',
+             fontsize='72', fontname='Foglihten')
+    
     return fig
