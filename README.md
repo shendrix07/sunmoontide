@@ -1,8 +1,13 @@
 # calendar
 ## Sun * Moon * Tide Calendar Maker
+## by Sara Hendrix of CruzViz
+
+![alt text](https://github.com/cruzviz/calendar/blob/master/graphics/logo.png "CruzViz logo")
+
+----------------------
 
 ### Requirements:
-- Python 3.4
+- Python 3.4 (or higher)
 - Non-standard-library Packages: matplotlib, numpy, pandas, PIL, pyephem, pytz
  
 ----------------------
@@ -23,7 +28,7 @@ In order for the calendar to look right, you will need to install 3 fonts on you
 ### Step by step instructions:
 
 1. Make sure you have Python 3.4+ installed properly, along with all the packages listed in Requirements. Unzip the package and make sure the following relative directory structure has been retained:
-```
+   ```
    calendar/
      __init__.py
      __main__.py
@@ -41,16 +46,16 @@ In order for the calendar to look right, you will need to install 3 fonts on you
      graphics/
         Sun.png ??????
         logo.png
-  @@@@@@@ cover art, annotated legend file
+   @@@@@@@ cover art, annotated legend file
      LICENSE
      README.md
      station_info.csv
      tides.py
-```
+   ```
 
 2. Install the 3 fonts filed under the `fonts` folder. Usually you can just double-click on the \*.otf or \*.ttf file and it will show you how to install it on your system. Once it is installed on your system, make sure that your matplotlibrc defaults know about these fonts. I recommend adding `Foglihten` to the serif font list, and `moon phase` and `FoglihtenNo01` to the fantasy font list. You may also need to delete `fontList.cache` and any similar cache files from your `$HOME/.matplotlib` directory so that matplotlib has to actually look for the new fonts. This directory is also where a `matplotlibrc` file may be placed if you wish to update your defaults permanently. See http://matplotlib.org/users/customizing.html for details on using matplotlibrc.
 
-If you don't do this part, the code will still run, but it won't look as good. In particular, the moon phase icons will be junky looking letters instead of moon phases.
+   If you don't do this part, the code will still run, but it won't look as good. In particular, the moon phase icons will be junky looking letters instead of moon phases.
 
 
 3. Following the tips above, find your local NOAA tide station on the NOAA website, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions.
@@ -59,11 +64,11 @@ If you don't do this part, the code will still run, but it won't look as good. I
 
 3. Open a terminal and `cd` into the aforementioned parent directory. You are in the right place if `ls` shows you a directory named `calendar` and a file called `your_filename` (or whatever you named it). Now tell python to run `calendar your_filename`:
 
-`$ python calendar your_filename`
+   `$ python calendar your_filename`
 
-Or if you usually work in python 2, your defaults probably require:
+   Or if you usually work in python 2, your defaults probably require:
 
-`$ python3 calendar your_filename`
+   `$ python3 calendar your_filename`
 
 4. Output will update you on the progress of the program. It can take a few minutes to run, most time being taken in drawing the PDF.
 
