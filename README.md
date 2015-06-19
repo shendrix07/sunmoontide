@@ -1,7 +1,7 @@
 # calendar
 ## Sun * Moon * Tide Calendar Maker
 
-<a href="http://cruzviz.com/"><img src="https://github.com/cruzviz/calendar/blob/master/graphics/logo_details.svg" align="left" height="48"></a>
+<a href="http://cruzviz.com/"><img src="blob/master/graphics/logo.png" align="center" height="48"></a>
 
 ----------------------
 
