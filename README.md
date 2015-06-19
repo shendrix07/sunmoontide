@@ -1,8 +1,7 @@
 # calendar
 ## Sun * Moon * Tide Calendar Maker
-## by Sara Hendrix of CruzViz
 
-![alt text](https://github.com/cruzviz/calendar/blob/master/graphics/logo.png "CruzViz logo")
+<a href="http://cruzviz.com/"><img src="https://github.com/cruzviz/calendar/blob/master/graphics/logo_details.svg" align="left" height="48"></a>
 
 ----------------------
 

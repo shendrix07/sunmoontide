@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="644" height="280" viewBox="0, 0, 644, 280">
+  <g id="Layer_1">
+    <g id="path3334">
+      <path d="M0.947,44.246 L0.947,25.713 L92.52,10.451 L159.02,19.172 L256.045,5 L370.512,23.533 L429.381,16.992 L479.529,25.713 L542.758,16.992 L640.873,46.426 z" fill="#DFDCDF"/>
+      <path d="M0.947,44.246 L0.947,25.713 L92.52,10.451 L159.02,19.172 L256.045,5 L370.512,23.533 L429.381,16.992 L479.529,25.713 L542.758,16.992 L640.873,46.426 z" fill-opacity="0" stroke="#DFDCDF" stroke-width="1"/>
+    </g>
+    <g id="path4156">
+      <path d="M0.947,52.967 L0.947,71.5 L643.053,71.5 L643.053,54.057 z" fill="#52ABB7"/>
+      <path d="M0.947,52.967 L0.947,71.5 L643.053,71.5 L643.053,54.057 z" fill-opacity="0" stroke="#52ABB7" stroke-width="1"/>
+    </g>
+    <text transform="matrix(1, 0, 0, 1, 322.447, 164.967)" id="tspan3353">
+      <tspan x="-259.75" y="32" font-family="Jaapokki-Regular" font-size="144" fill="#0E0D0C">CruzViz</tspan>
+    </text>
+    <text transform="matrix(1, 0, 0, 1, 322.5, 290.5)">
+      <tspan x="-301.311" y="-16.454" font-family="Jaapokki-Regular" font-size="48" fill="#000000">Data Science </tspan>
+      <tspan x="-14.703" y="-16.454" font-family="LucidaGrande-Bold" font-size="48" fill="#000000">&amp;</tspan>
+      <tspan x="21.039" y="-16.454" font-family="Jaapokki-Regular" font-size="48" fill="#000000"> Visualization</tspan>
+    </text>
+  </g>
+</svg>
