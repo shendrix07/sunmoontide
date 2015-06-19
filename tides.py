@@ -12,7 +12,6 @@ import pandas as pd
 import pkgutil
 from io import BytesIO
 
-
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = itertools.tee(iterable)
@@ -74,7 +73,7 @@ def sine_interp(height1, height2, resolution, remove_end=False):
     
     y = amp * np.sin(x) + bump
     
-    # postconditions; round to 8 decimal places for float comparison
+    # round off for float comparison
     assert(round(y[0], 8) == round(height1, 8))
     assert(len(y) == resolution)
     assert(round(y[resolution-1], 8) == round(height2, 8))
@@ -117,26 +116,18 @@ def read_noaa_header(filename):
     ['Date', 'Day', 'Time', 'Pred(Ft)', 'Pred(cm)', 'High/Low']
 
     """
-    try:
-        file = open(filename, 'r')
-    except Exception as e:
-        print('In Tides, read_noaa_header could not open NOAA input file ' +
-                filename + '.')
-        print('Reason: ' + e)
-        raise
-
     metadata = {}
-    for line in file:
-        if line.isspace():
-                break
-        elif line.find(': ') >= 0:
-            k, v = line.split(': ')
-        else:
-            k = line
-            v = ''
-        metadata[k] = v
-    column_names = file.readline()
-    file.close()
+    with open(filename, 'r') as file:
+        for line in file:
+            if line.isspace():
+                    break
+            elif line.find(': ') >= 0:
+                k, v = line.split(': ')
+            else:
+                k = line
+                v = ''
+            metadata[k] = v
+        column_names = file.readline()
     
     def _check_that(Boolean_valued_statement):
         """If `Boolean_valued_statement` is False, raise a detailed error."""
@@ -210,7 +201,7 @@ def lookup_station_info(StationID):
     return info
 
 
-def build_all_tides(raw_tides, resolution, use_column):
+def build_all_tides(raw_tides, resolution, use_column, finish_last_day=False):
     """ Interpolate tide magnitudes and timestamps from given highs/lows.
     
     Args:
@@ -221,6 +212,13 @@ def build_all_tides(raw_tides, resolution, use_column):
                                   includes both endpoints for each interval.
         use_column (string): the name of the column of rawtides to use for the
                              tide high/low magnitudes.
+    
+    Optional:
+        finish_last_day: if True, the function will pretend that the
+            next-to-last raw_tides magnitude occurs again 7 hours later, in
+            order to fill out all_tides into the following day. This is for the
+            Sun * Moon * Tide calendar to avoid an odd visual cut off in the
+            evening of Dec 31.
 
     Returns:
         all_tides: a pandas timeseries of sine interpolated tides,
@@ -236,9 +234,7 @@ def build_all_tides(raw_tides, resolution, use_column):
         interps = sine_interp(value_a, value_b, resolution, True)
         assert(len(interps) == (resolution - 1))
         alltides.append(interps)
-
     alltides = np.array(alltides).flatten()
-    
     # add on the last tide value, left out of the loop
     alltides = np.append(alltides, raw_values[-1])
 
@@ -250,19 +246,26 @@ def build_all_tides(raw_tides, resolution, use_column):
         b = np.datetime64(time_b)
         step = np.timedelta64((b - a) / (resolution-1))
         interv = np.arange(a, b, step)
-        # remove end to avoid duplicates when appending next interval
+        # assure proper length of time interval
         interv = interv[:resolution-1]
         assert(len(interv) == (resolution - 1))
         tidetimes.append(interv)
-
     tidetimes = np.array(tidetimes, dtype = 'datetime64[us]').flatten()
-
     # add on the last datetime, left out of the loop
-    last_one = raw_tides.index[len(raw_tides.index) - 1] 
-    #this is a pandas timestamp, need to convert it to a numpy datetime64
-    last_one = np.datetime64(last_one)
+    last_one = np.datetime64(raw_tides.index[-1])
     assert(np.dtype(tidetimes[1]) == np.dtype(last_one))
     tidetimes = np.append(tidetimes, last_one)
+    
+    if finish_last_day:
+        # interpolate from last tide height to next-to-last tide height
+        interps = sine_interp(raw_values[-1], raw_values[-2], resolution, False)
+        alltides = np.append(alltides, interps)
+        # start 10 seconds after last tide extreme
+        a = np.datetime64(raw_tides.index[-1]) + np.timedelta64(10, 's')
+        b = a + np.timedelta64(7, 'h')  # 7 hours later
+        step = np.timedelta64((b - a) / (resolution-1))
+        interv = np.arange(a, b, step)
+        tidetimes = np.append(tidetimes, interv)
 
     assert(len(tidetimes)==len(alltides))
     all_tides = pd.Series(alltides,tidetimes)
@@ -304,13 +307,13 @@ class Tides:
                        index_col=0)
         del rawtides['High/Low']
         del rawtides['cm']
-# Localize to correct time zone, then convert to UTC for calculations.
         rawtides.index = rawtides.index.tz_localize(self.timezone)
+        # convert to UTC for calculations        
         rawtides.index = rawtides.index.tz_convert('UTC')
-
-        self.all_tides = build_all_tides(rawtides, resolution, 'ft') # &**&
-# Localize back to the correct time zone, ready for plotting
+        self.all_tides = build_all_tides(rawtides, resolution, 'ft',
+                                         finish_last_day = True) # &**&
         self.all_tides.index = self.all_tides.index.tz_convert(self.timezone)
+        # back to local time, ready for plotting        
         rawtides.index = rawtides.index.tz_convert(self.timezone)
         self.raw_tides = rawtides
 

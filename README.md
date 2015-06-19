@@ -3,7 +3,7 @@
 
 ### Requirements:
 - Python 3.4
-- Non-standard-library Packages: matplotlib, numpy, pandas, pyephem, pytz
+- Non-standard-library Packages: matplotlib, numpy, pandas, PIL, pyephem, pytz
  
 ----------------------
 
@@ -16,33 +16,44 @@ Or just google “NOAA tide predictions”.
 
 The NOAA predictions can be updated over time. It is good to download the input file just before making the calendar, to be sure you are working with the most current data.
 
+In order for the calendar to look right, you will need to install 3 fonts on your system, and make sure matplotlib knows where to find them. The fonts are included with this package download.
+
 -------------
 
 ### Step by step instructions:
 
-0. Make sure you have Python 3.4+ installed properly, along with all the packages listed in Requirements. Unzip the package and make sure the following relative directory structure has been retained:
+1. Make sure you have Python 3.4+ installed properly, along with all the packages listed in Requirements. Unzip the package and make sure the following relative directory structure has been retained:
 ```
-   calendar\
+   calendar/
      __init__.py
      __main__.py
      astro.py
      cal_draw.py
      example_noaa_file.TXT
-     graphics_fonts\
-       moon_phases\
-         LICENSE.TXT
-         moon_phases.ttf
-       Sun_blue_icon.svg
-       Sun_green_icon.svg
-       Sun_icon.svg
-       Sun_orange_icon.svg
-       @@@@@@@logo, cover art, annotated legend file
+     fonts/
+        moon_phases/
+          LICENSE.TXT
+          moon_phases.ttf
+        foglihten/
+          Foglihten-068.otf
+          FoglihtenNo01.otf
+          SIL Open Font License.txt
+     graphics/
+        Sun.png ??????
+        logo.png
+  @@@@@@@ cover art, annotated legend file
      LICENSE
      README.md
      station_info.csv
      tides.py
 ```
-1. Following the links/tips above, find your NOAA tide station of interest, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions.
+
+2. Install the 3 fonts filed under the `fonts` folder. Usually you can just double-click on the \*.otf or \*.ttf file and it will show you how to install it on your system. Once it is installed on your system, make sure that your matplotlibrc defaults know about these fonts. I recommend adding `Foglihten` to the serif font list, and `moon phase` and `FoglihtenNo01` to the fantasy font list. You may also need to delete `fontList.cache` and any similar cache files from your `$HOME/.matplotlib` directory so that matplotlib has to actually look for the new fonts. This directory is also where a `matplotlibrc` file may be placed if you wish to update your defaults permanently. See http://matplotlib.org/users/customizing.html for details on using matplotlibrc.
+
+If you don't do this part, the code will still run, but it won't look as good. In particular, the moon phase icons will be junky looking letters instead of moon phases.
+
+
+3. Following the tips above, find your local NOAA tide station on the NOAA website, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions.
 
 2. Move the NOAA annual text file into the parent directory of the calendar directory. Rename the NOAA file to a filename that contains no spaces - I will call it `your_filename` here. It doesn’t need to have a file extension, though \*.txt can be handy if you want to click open the file to look at it yourself.
 
