@@ -20,7 +20,7 @@ Or just google “NOAA tide predictions”.
 
 The NOAA predictions can be updated over time. It is good to download the input file just before making the calendar, to be sure you are working with the most current data.
 
-In order for the calendar to look right, you will need to install 3 fonts on your system, and make sure matplotlib knows where to find them. The fonts are included with this package download.
+To make the calendar look right, you will need to install 3 fonts on your system, and make sure matplotlib knows where to find them. These fonts are included with this package download.
 
 -------------
 
@@ -52,10 +52,16 @@ In order for the calendar to look right, you will need to install 3 fonts on you
      tides.py
    ```
 
-2. Install the 3 fonts filed under the `fonts` folder. Usually you can just double-click on the \*.otf or \*.ttf file and it will show you how to install it on your system. Once it is installed on your system, make sure that your matplotlibrc defaults know about these fonts. I recommend adding `Foglihten` to the serif font list, and `moon phase` and `FoglihtenNo01` to the fantasy font list. You may also need to delete `fontList.cache` and any similar cache files from your `$HOME/.matplotlib` directory so that matplotlib has to actually look for the new fonts. This directory is also where a `matplotlibrc` file may be placed if you wish to update your defaults permanently. See http://matplotlib.org/users/customizing.html for details on using matplotlibrc.
+2. Install the 3 fonts filed under the `fonts` folder: Moon Phases, FoglihtenNo01, and regular Foglihten.
+  * You should be able to just double-click on each \*.otf or \*.ttf file and it will show you how to install the font on your system.
+  * Once the fonts are installed on your system, make sure that your matplotlibrc defaults know about these fonts. For example, in a matplotlibrc file:
+    * add `Foglihten` to the serif font list
+    * add `moon phases` and `FoglihtenNo01` to the fantasy font list
+    * make sure those rows are uncommented (delete #)
+  * You may also need to delete `fontList.cache` and any similar cache files from your `$HOME/.matplotlib` directory in order to force matplotlib to actually search out the new fonts. This directory is also where the `matplotlibrc` file may be placed if you wish to update your defaults permanently.
+  * See http://matplotlib.org/users/customizing.html for details on using a matplotlibrc file.
 
-   If you don't do this part, the code will still run, but it won't look as good. In particular, the moon phase icons will be junky looking letters instead of moon phases.
-
+   If you don't get the fonts installed properly, the code will still run, but it won't look as good. In particular, the moon phase icons will be characters in a default font instead of moon phases.
 
 3. Following the tips above, find your local NOAA tide station on the NOAA website, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions.
 
