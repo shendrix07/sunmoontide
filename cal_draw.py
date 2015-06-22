@@ -6,10 +6,10 @@ useful in other applications.
 """
 import matplotlib
 matplotlib.use('PDF')
+from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 plt.ioff()
-from matplotlib.backends.backend_pdf import PdfPages
 
 import calendar
 import numpy as np
@@ -37,11 +37,11 @@ def months_in_year(year_string):
     of the year in order, also as strings (i.e. '2015-07').
     '''
     start_date = pd.to_datetime(year_string + '-01')    
-    end_date = start_date + pd.DateOffset(months=12)
+    end_date = start_date + pd.DateOffset(months = 12)
     current_date = start_date
     while current_date < end_date:
         yield current_date.strftime('%Y-%m')
-        current_date = current_date + pd.DateOffset(months=1)
+        current_date = current_date + pd.DateOffset(months = 1)
 
 
 def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
@@ -93,12 +93,14 @@ def month_page(month_string, tide_o, sun_o, moon_o):
     '''
     fig = plt.figure(figsize=(8.5,11))
     
+    # some renaming of things for readability
     tide_min, tide_max = tide_o.annual_min, tide_o.annual_max
     place_name = tide_o.station_name + ", " + tide_o.state
     time_zone = tide_o.timezone
     month_title = pd.to_datetime(month_string).strftime('%B')
     year_title = tide_o.year
-    
+
+#------------------ daily plot creator function -------------------
     def _plot_a_date(grid_index, date):
         '''Internal function. Works on pre-defined gridspec gs and assumes
         variables like tide_min, tide_max, month_of_tide/moon/sun already
@@ -110,8 +112,8 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         
         Returns ax1, ax2 = sun/moon (ax1) and tide (ax2) subplot handles
         '''
-        day_of_sun = sun_o.heights[date]
-        day_of_moon = moon_o.heights[date]
+        day_of_sun = sun_o.altitudes[date]
+        day_of_moon = moon_o.altitudes[date]
         day_of_tide = tide_o.all_tides[date]
         
         # convert indices to matplotlib-friendly datetime format
@@ -132,78 +134,100 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         
         # sun and moon heights on top
         ax1 = plt.subplot(gs[grid_index])
-        ax1.fill_between(Si, day_of_sun, Sz, color='#FFEB00', alpha=1)
-        ax1.fill_between(Mi, day_of_moon, Mz, color='#D7A8A8', alpha=0.2)
+        ax1.fill_between(Si, np.sin(day_of_sun), Sz, color = '#FFEB00',
+                         alpha = 0.25)  # the sunlight intensity
+        ax1.fill_between(Si, day_of_sun / (np.pi / 2), Sz, color = '#FFEB00',
+                         alpha = 1)  # the altitude angle
+        ax1.fill_between(Mi, day_of_moon / (np.pi / 2), Mz, color = '#D7A8A8',
+                         alpha = 0.25)
         ax1.set_xlim((start_time, stop_time))
         ax1.set_ylim((0, 1))
         ax1.set_xticks([])
         ax1.set_yticks([])
-        for axis in ['top','left','right']:
-            ax1.spines[axis].set_linewidth(1.5)
+        for side in ['top', 'left', 'right']:
+            ax1.spines[side].set_linewidth(1.5)
         ax1.spines['bottom'].set_visible(False)
         # add date number
         plt.text(0.05, 0.73, day_of_sun.index[0].day, ha = 'left',
                  fontsize = 12, fontname='Foglihten',
                  transform = ax1.transAxes)
         # add moon phase icon
-        moon_icon = '0ABCDEFGHIJKLM@NOPQRSTUVWXYZ'
+        moon_icon = '0ABCDEFGHIJKLM@NOPQRSTUVWXYZ'  # the dark part
         plt.text(0.96, 0.69, moon_icon[moon_o.phase_day_num[date]],
-                 ha = 'right', fontsize = 12, fontname='moon phases',
-                 transform = ax1.transAxes)
+                 ha = 'right', fontsize = 12, color = '0.75',
+                 fontname = 'moon phases', transform = ax1.transAxes)
+        plt.text(0.96, 0.69, '*',   # the white part
+                 ha = 'right', fontsize = 12, color = '#D7A8A8', alpha = 0.25,
+                 fontname = 'moon phases', transform = ax1.transAxes)
         
         # tide magnitudes below
         ax2 = plt.subplot(gs[grid_index + 7])
-        ax2.fill_between(Ti, day_of_tide, Tz, color='#52ABB7', alpha=0.8)
+        ax2.fill_between(Ti, day_of_tide, Tz, color = '#52ABB7', alpha = 0.8)
         ax2.set_xlim((start_time, stop_time))
         ax2.set_ylim((tide_min, tide_max))
         ax2.set_xticks([])
         ax2.set_yticks([])
-        for axis in ['bottom','left','right']:
-            ax2.spines[axis].set_linewidth(1.5)
+        for side in ['bottom', 'left', 'right']:
+            ax2.spines[side].set_linewidth(1.5)
         ax2.spines['top'].set_linewidth(0.5)
         
         return ax1, ax2
     
 # ---------------- build grid of daily plots ---------------------
     gs = gridspec.GridSpec(12, 7, wspace = 0.0, hspace = 0.0)
-    daily_axes = [] # daily_axes[i] will hold sun/moon axes for date i+1
+    daily_axes = [] # daily_axes[i] = sun/moon axes for date i+1
 
-    # dayofweek = The day of the week with Monday=0, Sunday=6    
+    # dayofweek --> Monday=0, Sunday=6. Our week starts on Sunday.
     init_day = (pd.to_datetime(month_string + '-01').dayofweek + 1) % 7
-    gridnum = init_day
+    gridnum = init_day  # start daily plots on correct day of week
     for day in days_in_month(month_string):
         ax, _ = _plot_a_date(gridnum, day)
         daily_axes.append(ax)
         if pd.to_datetime(day).dayofweek == 5: # if just plotted a Saturday
-            gridnum += 8  # skip down a week to leave tide subplots intact
+            gridnum += 8  # skip down a full row to leave tide subplots intact
         else:
             gridnum += 1
 
-    fig.subplots_adjust(left=0.05, right=0.95,
-                        bottom=0.1, top=0.8,
-                        hspace=0.0, wspace=0.0)
+    # give us some better margins
+    fig.subplots_adjust(left = 0.05, right = 0.95, bottom = 0.1, top = 0.8,
+                        hspace = 0.0, wspace = 0.0)
 
     # add solstice or equinox icon, if needed this month
-        # @@@@@@@@
+    sun_icon_col = {
+        'spring equinox':   '#CCFFCC',
+        'summer solstice':  '#FFFFA3',
+        'fall equinox':     '#D56F28',
+        'winter solstice':  '#B4EAF4'
+    }
+    monthnum = pd.to_datetime(month_string).month
+    if monthnum in sun_o.events.index.month:
+        solar_event = sun_o.events[monthnum == sun_o.events.index.month]
+        xloc = matplotlib.dates.date2num(solar_event.index[0].to_pydatetime())
+        sol_color = sun_icon_col[solar_event[0]]
+        sol_ax = daily_axes[solar_event.index[0].day - 1]
+        sol_ax.scatter(xloc, 0.25, s=400, marker = (16, 1, 0),
+                       facecolor = sol_color, linewidth = 0.5,
+                       edgecolor = 'black', zorder = 300, clip_on = False)
+        sol_ax.set_zorder(1000)
 
     # add empty date boxes, figure annotations and titles
     day_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
                  'Friday', 'Saturday']
-    for i in range(init_day, 7):
+    for i in range(init_day, 7):  # day-of-week labels on top row subplots
         plt.text(0.5, 1.08, day_names[i],
-                 horizontalalignment='center',
-                 fontsize=12, fontname='Foglihten',
+                 horizontalalignment = 'center',
+                 fontsize = 12, fontname = 'Foglihten',
                  transform = daily_axes[i - init_day].transAxes)
-    for i in range(init_day):  # blank boxes on top row
+    for i in range(init_day):  # handle the blank boxes on top row
         temp_ax = plt.subplot(gs[i])
         temp2_ax = plt.subplot(gs[i + 7])
         temp_ax.set_xticks([])
         temp_ax.set_yticks([])
         temp2_ax.set_xticks([])
         temp2_ax.set_yticks([])
-        for axis in ['left','right']:
-            temp_ax.spines[axis].set_linewidth(0.5)
-            temp2_ax.spines[axis].set_linewidth(0.5)
+        for side in ['left', 'right']:
+            temp_ax.spines[side].set_linewidth(0.5)
+            temp2_ax.spines[side].set_linewidth(0.5)
         if i == 0:
             temp_ax.spines['left'].set_linewidth(1.5)
             temp2_ax.spines['left'].set_linewidth(1.5)
@@ -214,19 +238,21 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         temp2_ax.spines['top'].set_linewidth(0.0)
         temp_ax.spines['top'].set_linewidth(1.5)
         temp2_ax.spines['bottom'].set_linewidth(1.5)
-        plt.text(0.5, 1.08, day_names[i],
-                     horizontalalignment='center',
-                     fontsize=12, fontname='Foglihten',
+        plt.text(0.5, 1.08, day_names[i],     # doy-of-week labels on blanks
+                     horizontalalignment = 'center',
+                     fontsize = 12, fontname = 'Foglihten',
                      transform = temp_ax.transAxes)
 
-    fig.text(0.05, 0.875, month_title, horizontalalignment='left',
-             fontsize='72', fontname='Foglihten')
-    fig.text(0.92, 0.875, year_title, horizontalalignment='right',
-             fontsize='72', fontname='Foglihten')
-    fig.text(0.92, 0.1, place_name, horizontalalignment='right',
-             fontsize='16', fontname='Foglihten')
-    fig.text(0.92, 0.13, 'Sun * Moon * Tide', horizontalalignment='right',
-             fontsize='36', fontname='FoglihtenNo01')
+    # title and footer text
+    fig.text(0.08, 0.875, month_title, horizontalalignment = 'left',
+             fontsize = '72', fontname = 'Foglihten')
+    fig.text(0.92, 0.875, year_title, horizontalalignment = 'right',
+             fontsize = '72', fontname = 'Foglihten')
+    fig.text(0.92, 0.1, place_name, horizontalalignment = 'right',
+             fontsize = '16', fontname = 'Foglihten')
+    fig.text(0.92, 0.13, 'Sun * Moon * Tide', horizontalalignment = 'right',
+             fontsize = '36', fontname = 'FoglihtenNo01')
+    # cruzviz logo on footer
     try:
         logo = pkgutil.get_data('cal_draw', 'graphics/logo.png')
         im = Image.open(BytesIO(logo))

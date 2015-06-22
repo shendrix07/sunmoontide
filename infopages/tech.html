@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+    font-family: Marion;
+}
+
+p {
+    font-size: 0.85em;
+    line-height: 140%;
+}
+
+a { 
+    color: #0000FF;
+    text-decoration: none;
+}
+
+h1 { text-align: center }
+
+ol.c {
+    list-style-type: upper-roman;
+    font-size: 0.85em;
+    height: auto;
+    padding-bottom:10px;
+}
+
+ol.d {
+    list-style-type: lower-alpha;
+    font-size: 0.85em;
+    height: auto;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+</style>
+</head>
+<body>
+<h1>Technical Details</h1>
+
+<h2>Tides</h2>
+<p>
+Tide predictions (magnitudes and times of high and low tides) come from the National Oceanic and Atmospheric Administration's online annual tide tables.<br>
+<a href="http://tidesandcurrents.noaa.gov/tide_predictions.html">http://tidesandcurrents.noaa.gov/tide_predictions.html</a></p>
+<p>
+Since tidal fluctuations are sinusoidal, the tide curves in the calendar are created by interpolating a half sine wave to connect each subsequent high or low. Each high is the peak of its two adjacent interpolating waves, and each low is the trough of its two adjacent waves. This is not an exact representation of the actual tides, but it is qualitatively similar. NOAA predicts the highs and lows at primary stations using tidal harmonics &mdash; fitting a curve to the historical observations by adding up a series of sinusoidal functions. The highs and lows at secondary or "subordinate" stations are predicted by offsetting the predictions for a nearby primary or "harmonic" station. <<station name>> is a <<subordinate or harmonic>> station. <<If subordinate then: The predictions are referenced to <<primary>>, offset by <<X>>% and <<X>>% for the magnitude of the highs and lows, and by <<X>> and <<X>> minutes for times of the highs and lows, respectively.>>.</p>
+
+<p>NOAA provides tide predictions for <<station name>> in local <<timezone>> time. Since daylight savings time changes can interfere with calculations, the tide predictions are converted to UTC (coordinated universal time, which has no daylight savings) for building the tide curves, and then localized back to <<time zone>> time before drawing the calendar.</p>
+
+<p>NOAA revises the online predictions as new observations come in, so for precise up-to-date tide predictions, check their website.</p>
+
+<h2>Sun and Moon</h2>
+
+<p>Sun and moon heights in the sky over time are astronomical computations, and are specific for a given location on Earth and a given date. They are directly calculated for this calendar using PyEphem, a Python programming language package based on the XEphem astronomy application.<br>
+<a href="http://rhodesmill.org/pyephem/">http://rhodesmill.org/pyephem/</a></p>
+
+<p>PyEphem can calculate the sun or moon's position at any date and time. For the calendar, altitudes are calculated every 10 minutes. The altitude of the sun or moon is defined as its angle above the horizon, as observed from a given location on Earth. For example, if the sun's altitude is 90&deg;, it is directly overhead, and if it is 0&deg;, it is sunrise or sunset. Altitudes are defined relative to the apparent sea level horizon, ignoring any mountains or other obstacles, assuming an observer who is also at sea level. The calculations account for atmospheric refraction assuming a temperature of 15&#x2103; and atmospheric pressure of 1010 mB. The observer's location is set to the latitude and longitude coordinates of the NOAA tide prediction station used for the tide curves.</p>
+
+<p>For the sun, two different measures of height are shown on the calendar. The darker yellow foreground area shows the sun's altitude angle, and the lighter colored background area shows the <i>sine</i> of the sun's altitude angle. This is called the <i>insolation</i>, the intensity of sunlight per unit surface area. It corresponds to brightness (strength of the radiation received by the observer) and is the most relevant measure for UV exposure. The top of the date's box in the calendar corresponds to sin(altitude) = 1, e.g. the sun or moon being at 100% of maximum intensity, and the horizon line to sin(altitude) = 0, e.g. rise or set.</p>
+
+<p>Moon phases (new moon, first quarter moon, full moon, last quarter moon) are calculated by PyEphem for each lunar cycle of the year. The lunar cycle icons for each date are fitted to these phases, using the fractional progress between quarter phases and rounding off to a cycle day number. There are 28 moon phase icons, but lunar cycles range in length, with an average of about 29.5 days. So, there are sometimes skipped or repeated icons, due to rounding off as well as having slightly fewer unique icons than actual lunar cycle days. Lunar cycle icons are fitted for 10:00pm local time on each date.</p>
+
+<p>Solstices and equinoxes are shown with colored sun icons. The horizontal placement of the icon shows the exact timing of the event, as calculated by PyEphem.</p>
+
+<p>As with the tide curves, all calculations are performed with times in UTC (universal time) to avoid problems caused by daylight saving time changes, and the times are then localized to <<timezone>> time before drawing the calendar.</p>
+
+<h2>Sources</h2>
+
+<p>This printable 8.5x11" PDF calendar is automatically generated from a NOAA Annual Tide Prediction text file. All code was written by Sara Hendrix of CruzViz, in Python (version 3.4.3), with the following additional packages: PyEphem, pandas, numpy, matplotlib, pytz, PIL, pyPDF2, and WeasyPrint. The calendar source code is free online on GitHub.<br>
+<a href="https://github.com/cruzviz/calendar">https://github.com/cruzviz/calendar</a></p>
+
+<p>The moon phase icons are a font called "Moon Phases", copyrighted by Curtis Clark and used pursuant to license agreement.</p>
+
+<h2>License</h2>
+
+<p>This calendar is copyrighted by CruzViz. It is free for non-commercial use with attribution. Specifically, the PDF file and its printed hardcopies may be modified, edited, copied, displayed, posted, shared, printed, published, and distributed, subject to the following restrictions:</p>
+<ol class="c">
+  <li>Attribution. The original creator of the calendar must be indicated via one or more of the following:
+    <ol class="d">           
+      <li>CruzViz logo is shown and legible</li>
+      <li>URL links back to "cruzviz.com/tides"</li>
+      <li>citation of CruzViz and Sara Hendrix</li>
+    </ol>
+  </li>
+  <li>Non-Commercial Use. Any distribution, exchange, or publication of this calendar, whether in digital or printed hardcopy form, in whole or in part, with or without modification, must be done without any involvement of monetary compensation or commercial gain.</li>
+</ol>
+<h2>Want More?</h2>
+
+<p>Please contact CruzViz if you are interested in custom wall calendars or commercial licensing.<br>
+<a href="cruzviz.com/contact">cruzviz.com/contact</a></p>
+
+<p>Interactive web calendars are on the CruzViz Tides website.<br>
+<a href="cruzviz.com/tides">cruzviz.com/tides</a></p>
+
+</body>
+</html>
+

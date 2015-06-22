@@ -25,7 +25,7 @@ moon = Astro(str(tides.latitude), str(tides.longitude),
 print('Moon calculations complete.')
 
 print('Starting to draw calendar now.')
-output_filename = '2015_testcal.pdf'
+output_filename = '2015_testcal3.pdf'
 generate_annual_calendar(tides, sun, moon, output_filename)
 print('Calendar complete. Find output `' + output_filename +
         '` in the current working directory.')

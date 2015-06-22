@@ -137,7 +137,8 @@ def fill_in_heights(start, stop, step, observe, body_name, append_NaN = True):
     >>> ti, he = fill_in_heights(time1, time2, 15 * ephem.minute, cruz, 'Sun')
     >>> for t,h in zip(ti, he):
     ...     print('{0} ... {1:7.3f}'.format(
-    ...                    round_datetime(t).strftime('%Y-%m-%d %H:%M'), h))
+    ...                    round_datetime(t).strftime('%Y-%m-%d %H:%M'),
+    ...                    np.sin(h)))
     ... 
     2015-05-15 19:00 ...   0.921
     2015-05-15 19:15 ...   0.933
@@ -155,14 +156,14 @@ def fill_in_heights(start, stop, step, observe, body_name, append_NaN = True):
     while round(obs.date, 6) < round(stop, 6):
         times.append(obs.date.datetime())
         body.compute(obs) # compute new body position for the new observer time
-        height_now = np.sin(body.alt) # sin(altitude) of the new body position
+        height_now = body.alt # altitude angle (in radians)
         heights.append(height_now)
         obs.date += step # observer moves forward one time step
         
     obs.date = stop  # observer moves to exact stopping time
     times.append(obs.date.datetime())
     body.compute(obs)
-    height_now = np.sin(body.alt)
+    height_now = body.alt
     heights.append(height_now)
                 
     if append_NaN:
@@ -256,7 +257,7 @@ class Astro:
         hei = pd.Series(allheights, alltimes)
         hei.index = hei.index.tz_localize('UTC')
         hei.index = hei.index.tz_convert(timezone)
-        self.heights = hei
+        self.altitudes = hei
 
 # ----------------- Special attributes for Sun and Moon ----------------
 
