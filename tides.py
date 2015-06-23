@@ -201,7 +201,7 @@ def lookup_station_info(StationID):
     return info
 
 
-def build_all_tides(raw_tides, resolution, use_column, finish_last_day=False):
+def build_all_tides(raw_tides, resolution, use_column, extend_ends=False):
     """ Interpolate tide magnitudes and timestamps from given highs/lows.
     
     Args:
@@ -214,11 +214,13 @@ def build_all_tides(raw_tides, resolution, use_column, finish_last_day=False):
                              tide high/low magnitudes.
     
     Optional:
-        finish_last_day: if True, the function will pretend that the
-            next-to-last raw_tides magnitude occurs again 7 hours later, in
-            order to fill out all_tides into the following day. This is for the
-            Sun * Moon * Tide calendar to avoid an odd visual cut off in the
-            evening of Dec 31.
+        extend_ends: if True, the function will extend the beginning and end of
+            the time series by repeating raw_tides[1] 7 hours before the actual
+            raw_tides[0], and repeating raw_tides[-2] 7 hours after the actual
+            raw_tides[-1]. This is for the Sun * Moon * Tide calendar to avoid
+            an odd visual cut off in the first hours of Jan 1 when raw_tides
+            begins after midnight, and also in the last hours of Dec 31 when
+            raw_tides ends before midnight.
 
     Returns:
         all_tides: a pandas timeseries of sine interpolated tides,
@@ -230,6 +232,22 @@ def build_all_tides(raw_tides, resolution, use_column, finish_last_day=False):
     
     raw_values = eval('raw_tides.' + use_column)
     alltides = []
+    tidetimes = []
+    
+    if extend_ends:
+        # interpolate from second tide height to first tide height
+        initial_interps = sine_interp(raw_values[1], raw_values[0],
+                                      resolution, True)
+        alltides.append(initial_interps)
+        # start 7 hours before first tide extreme
+        a = np.datetime64(raw_tides.index[0]) - np.timedelta64(7, 'h')
+        b = np.datetime64(raw_tides.index[0])
+        step = np.timedelta64((b - a) / (resolution - 1))
+        initial_times = np.arange(a, b, step)
+        initial_times = initial_times[:resolution - 1]
+        tidetimes.append(initial_times)
+        
+    
     for value_a, value_b in pairwise(raw_values):
         interps = sine_interp(value_a, value_b, resolution, True)
         assert(len(interps) == (resolution - 1))
@@ -239,8 +257,7 @@ def build_all_tides(raw_tides, resolution, use_column, finish_last_day=False):
     alltides = np.append(alltides, raw_values[-1])
 
     # create datetime index for alltides, with even spacing between each 
-    # subsequent high/low time from the raw_tides datetime index.
-    tidetimes = []
+    # subsequent high/low time from the raw_tides datetime index.    
     for time_a, time_b in pairwise(raw_tides.index):
         a = np.datetime64(time_a)
         b = np.datetime64(time_b)
@@ -256,7 +273,7 @@ def build_all_tides(raw_tides, resolution, use_column, finish_last_day=False):
     assert(np.dtype(tidetimes[1]) == np.dtype(last_one))
     tidetimes = np.append(tidetimes, last_one)
     
-    if finish_last_day:
+    if extend_ends:
         # interpolate from last tide height to next-to-last tide height
         interps = sine_interp(raw_values[-1], raw_values[-2], resolution, False)
         alltides = np.append(alltides, interps)
@@ -294,7 +311,7 @@ class Tides:
         self.station_type = info['st_type']
         self.timezone = info['timezone']
         num_rows_to_skip = len(metadata) + 2
-        resolution = 20        
+        resolution = 200        # hi res sometimes needed for sparse rawtides
         
 # ------------ Read annual tide table into pandas DataFrame--------------
 # NOTE: &**& format dependant - main high/low data column name = 'ft'
@@ -311,7 +328,7 @@ class Tides:
         # convert to UTC for calculations        
         rawtides.index = rawtides.index.tz_convert('UTC')
         self.all_tides = build_all_tides(rawtides, resolution, 'ft',
-                                         finish_last_day = True) # &**&
+                                         extend_ends = True) # &**&
         self.all_tides.index = self.all_tides.index.tz_convert(self.timezone)
         # back to local time, ready for plotting        
         rawtides.index = rawtides.index.tz_convert(self.timezone)

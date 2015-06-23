@@ -126,11 +126,11 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         Mz = np.zeros(len(Mi))
         Tz = np.zeros(len(Ti))
         
-        # x-limits from midnight to 11:59pm local time
-        start_time = pd.to_datetime(date + ' 00:00').tz_localize(time_zone)
-        start_time = matplotlib.dates.date2num(start_time.to_pydatetime())
-        stop_time = pd.to_datetime(date + ' 23:59').tz_localize(time_zone)
-        stop_time = matplotlib.dates.date2num(stop_time.to_pydatetime())
+        # x-limits based on first and last tide interp time - this handles edge
+        # cases where only have one or two hi/lo tides per day and interps are
+        # somewhat sparse - no more odd cut offs near borders
+        start_time = matplotlib.dates.date2num(Ti[0])
+        stop_time = matplotlib.dates.date2num(Ti[-1])
         
         # sun and moon heights on top
         ax1 = plt.subplot(gs[grid_index])
