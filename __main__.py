@@ -12,7 +12,7 @@ args = parser.parse_args()
 
 if not os.path.isfile(args.filename):
     raise IOError('Cannot find ' + args.filename)
-print('Making Sun * Moon * Tides Calendar with ' +
+print('Making Sun * Moon * Tide Calendar with ' +
         'input file ' + args.filename + '.')
 
 tides = Tides(args.filename)
@@ -25,7 +25,7 @@ moon = Astro(str(tides.latitude), str(tides.longitude),
 print('Moon calculations complete.')
 
 print('Starting to draw calendar now.')
-output_filename = '2015_testcal3.pdf'
+output_filename = '2015_testcal4.pdf'
 generate_annual_calendar(tides, sun, moon, output_filename)
 print('Calendar complete. Find output `' + output_filename +
         '` in the current working directory.')

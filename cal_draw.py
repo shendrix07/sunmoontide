@@ -164,12 +164,14 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         ax2 = plt.subplot(gs[grid_index + 7])
         ax2.fill_between(Ti, day_of_tide, Tz, color = '#52ABB7', alpha = 0.8)
         ax2.set_xlim((start_time, stop_time))
-        ax2.set_ylim((tide_min, tide_max))
+        tide_margin = (tide_max - tide_min) / 60  # prevent overlap with spines
+        ax2.set_ylim((tide_min - 1.5 * tide_margin, tide_max + tide_margin))
         ax2.set_xticks([])
         ax2.set_yticks([])
         for side in ['bottom', 'left', 'right']:
             ax2.spines[side].set_linewidth(1.5)
         ax2.spines['top'].set_linewidth(0.5)
+        ax2.set_zorder(1500)
         
         return ax1, ax2
     
@@ -209,6 +211,8 @@ def month_page(month_string, tide_o, sun_o, moon_o):
                        facecolor = sol_color, linewidth = 0.5,
                        edgecolor = 'black', zorder = 300, clip_on = False)
         sol_ax.set_zorder(1000)
+
+        
 
     # add empty date boxes, figure annotations and titles
     day_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',

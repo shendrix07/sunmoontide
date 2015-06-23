@@ -3,30 +3,34 @@
 
 <a href="http://cruzviz.com/"><img src="https://github.com/cruzviz/calendar/blob/master/graphics/logo.png" align="center" height="48"></a>
 
+### What is a Sun * Moon * Tide Calendar? What does the code do?
+
+This code produces a PDF file containing a Sun * Moon * Tide calendar. There is a cover page, an About page (accessible for a lay audience - [example](@@@), a Year-at-a-Glance page, twelve month pages, and then two pages of technical details ([example](@@@)). The output PDF calendar is designed to be easily printed on a home or office printer with 8.5x11" paper. An example calendar for Santa Cruz, California is available [here](@@@) (~@@30 MB PDF file). The only input required is an annual tide prediction file. These tide predictions are produced by NOAA for American coastal areas, including territories and neighboring islands. There are over 3,000 NOAA tide prediction stations.
+
+The program reads in all the high and low tides and interpolates them to produce sinusoidal curve data. It parses the input file header for station information, which it uses to look up necessary information like location coordinates and placename. (This is the `tides.py` module.) Then it calculates sun and moon positions relative to that location over the whole year. (The `astro.py` module.) Then it creates a pretty calendar showing tidal fluctuations and sun and moon movements for each day of the year. (The `cal_draw.py` module - almost completely done in matplotlib.) It generates the front and back matter and puts it all together in a printable PDF (@@@). It takes a few minutes to run, mainly waiting for matplotlib to crank out the monthly pages. The resulting PDF output file is about @@50 MB. Overall, it's about @@1,000 lines of code divided between 4 modules, stitched together by `__main__.py`.
+
 ----------------------
 
 ### Requirements:
-- Python 3.4 (or higher)
-- Non-standard-library Packages: matplotlib, numpy, pandas, PIL, pyephem, pytz
+- Python 3.4
+- Non-standard-library Packages: matplotlib, numpy, pandas, PIL, pyephem, pyPDF2, pytz, WeasyPrint
  
 ----------------------
 
-The main input for the Sun * Moon * Tide calendar maker is a NOAA Tide Prediction annual text file. In addition to the tidal highs and lows used to create tidal fluctuation curves, this file includes the station information that is used to look up the local time zone and location coordinates for calculating sun and moon heights, as well as providing the calendar’s year and place name.
-
-The user of the calendar maker must manually download the NOAA Tide Prediction annual text file for the station and year for which s/he wants to make a calendar. 
+The main input for the Sun * Moon * Tide calendar maker is a NOAA Tide Prediction annual text file. The user of the calendar maker must manually download the NOAA Tide Prediction annual text file for the station and year for which s/he wants to make a calendar. The NOAA tide predictions website has both map and text search features so you can find the station nearest to your place of interest.
 http://tidesandcurrents.noaa.gov/tide_predictions.html
 
 Or just google “NOAA tide predictions”.
 
 The NOAA predictions can be updated over time. It is good to download the input file just before making the calendar, to be sure you are working with the most current data.
 
-To make the calendar look right, you will need to install 3 fonts on your system, and make sure matplotlib knows where to find them. These fonts are included with this package download.
+To make the calendar look right, you will need to install 3 fonts on your system, and make sure matplotlib knows where to find them. These fonts are included with the package download.
 
 -------------
 
 ### Step by step instructions:
 
-1. Make sure you have Python 3.4+ installed properly, along with all the packages listed in Requirements. Unzip the package and make sure the following relative directory structure has been retained:
+1. Make sure you have Python 3.4 installed along with all the packages listed in Requirements@@@(setup file??? venv??). Unzip the package and make sure the following relative directory structure has been retained:
    ```
    calendar/
      __init__.py
@@ -61,7 +65,7 @@ To make the calendar look right, you will need to install 3 fonts on your system
   * You may also need to delete `fontList.cache` and any similar cache files from your `$HOME/.matplotlib` directory in order to force matplotlib to actually search out the new fonts. This directory is also where the `matplotlibrc` file may be placed if you wish to update your defaults permanently.
   * See http://matplotlib.org/users/customizing.html for details on using a matplotlibrc file.
 
-   If you don't get the fonts installed properly, the code will still run, but it won't look as good. In particular, the moon phase icons will be characters in a default font instead of moon phases.
+   If you don't install the fonts properly, the code will still run, but it won't look as good. In particular, the moon phase icons will be characters in a default font instead of moon phases.
 
 3. Following the tips above, find your local NOAA tide station on the NOAA website, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions.
 
@@ -71,15 +75,15 @@ To make the calendar look right, you will need to install 3 fonts on your system
 
    `$ python calendar your_filename`
 
-   Or if you usually work in python 2, your defaults probably require:
+   Or depending on your defaults:
 
    `$ python3 calendar your_filename`
 
-4. Output will update you on the progress of the program. It can take a few minutes to run, most time being taken in drawing the PDF.
+4. Output will update you on the progress of the program. It can take a few minutes to run, mostly spend drawing the month pages in matplotlib.
 
 --------
 ### If NOAA file format changes:
 
-Procedures that will probably need revision are in the tides.py module. Search for `&**&` to find places that I believe will need to be updated if the NOAA annual tide prediction text file format changes significantly. Generally speaking, the input just needs to contain a time series of high/low tide magnitude predictions for the entire year.
+Procedures that will probably need revision are in the tides.py module. Search for `&**&` to find places that I believe will need to be updated if the NOAA annual tide prediction text file format changes significantly. Generally speaking, the input just needs to contain a time series of high/low tide magnitude predictions for the entire year. But the module also needs to somehow figure out the location coordinates, placename, timezone, and other station info.
 
 ---------
