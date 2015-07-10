@@ -1,0 +1,40 @@
+name: sunmoontide_env
+dependencies:
+- freetype=2.5.2=2
+- jpeg=8d=1
+- libpng=1.6.17=0
+- libtiff=4.0.2=1
+- matplotlib=1.4.3=np19py34_3
+- numpy=1.9.2=py34_0
+- openssl=1.0.1k=1
+- pandas=0.16.2=np19py34_0
+- pillow=2.9.0=py34_0
+- pip=7.1.0=py34_0
+- pyparsing=2.0.3=py34_0
+- pyqt=4.11.3=py34_0
+- python=3.4.3=0
+- python-dateutil=2.4.2=py34_0
+- pytz=2015.4=py34_0
+- qt=4.8.6=3
+- readline=6.2=2
+- setuptools=18.0.1=py34_0
+- sip=4.16.5=py34_0
+- six=1.9.0=py34_0
+- sqlite=3.8.4.1=1
+- tk=8.5.18=0
+- xz=5.0.5=0
+- zlib=1.2.8=0
+- pip:
+  - cairocffi==0.7.1
+  - cairosvg==1.0.15
+  - cffi==1.1.2
+  - cssselect==0.9.1
+  - ephem==3.7.5.3
+  - html5lib==0.999999
+  - lxml==3.4.4
+  - pycparser==2.14
+  - pypdf2==1.25
+  - pyphen==0.9.1
+  - tinycss==0.3
+  - weasyprint==0.23
+
