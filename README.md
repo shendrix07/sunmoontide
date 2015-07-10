@@ -1,7 +1,7 @@
 # sunmoontide
 ## Sun * Moon * Tide Calendar Maker
 
-<a href="http://cruzviz.com/"><img src="https://github.com/cruzviz/calendar/blob/master/graphics/logo.png" align="center" height="48"></a>
+<a href="http://cruzviz.com/"><img src="https://github.com/cruzviz/calendar/blob/master/sunmoontide/graphics/logo.png" align="center" height="48"></a>
 
 ### What is a Sun * Moon * Tide calendar? What does the code do?
 
