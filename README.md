@@ -21,10 +21,6 @@ The program reads in all the high and low tides and interpolates them to produce
 The input for the Sun * Moon * Tide calendar maker is a NOAA Tide Prediction annual text file. The user of the calendar maker must manually download the NOAA Tide Prediction annual text file for the station and year for which s/he wants to make a calendar. The NOAA tide predictions website has both map and text search features so you can find the station nearest to your place of interest.
 http://tidesandcurrents.noaa.gov/tide_predictions.html
 
-Or just google “NOAA tide predictions”.
-
-The NOAA predictions can be updated over time. It is good to download the input file just before making the calendar, to be sure you are working with the most current data.
-
 To make the calendar look right, you will need to install 3 fonts on your system, and make sure matplotlib knows where to find them. These fonts are included with the package download.
 
 -------------
@@ -77,7 +73,7 @@ To make the calendar look right, you will need to install 3 fonts on your system
 
    If you don't install the fonts properly, the code will still run, but it won't look as good. In particular, the moon phase icons will be characters in a default font instead of moon phases.
 
-3. Visit the NOAA Tide Predictions website, find your NOAA tide station, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions. (Ctrl-F to find "annual" may help.)
+3. Visit the NOAA Tide Predictions website, find your NOAA tide station, and download the Annual TXT format of the published tide tables. It must be the TXT format, not PDF or XML. Make sure it is the *ANNUAL* tide tables and not the 2-day predictions. (Ctrl-F to find "published" may help.)
 
 2. Move the NOAA annual text file into the root directory of the package. Rename the NOAA file to a filename that contains no spaces - I will call it `your_filename` here. It doesn’t need to have a file extension, though \*.txt can be handy if you want to click open the file to look at it yourself.
 
@@ -92,7 +88,7 @@ To make the calendar look right, you will need to install 3 fonts on your system
 4. Output will update you on the progress of the program. It can take a few minutes to run, mostly spend drawing the month pages in matplotlib.
 
 --------
-### If NOAA file format changes, or adapting to other input file formats:
+### Adapting to other input file formats:
 
 Procedures that will probably need revision are in the `tides.py` module. Search for `&**&` to find places that I believe will need to be updated if the NOAA annual tide prediction text file format changes significantly, or in order to adapt the code to handle other file formats for tide predictions, e.g. another country's. Generally speaking, the input file just needs to contain a time series of high/low tide magnitude predictions for the entire year. But the `tides.py` module also needs to somehow figure out:
   * the station's local time zone - required for everything to be interpolated/calculated properly, and then presented in local time accurately

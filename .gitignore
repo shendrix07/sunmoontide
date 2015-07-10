@@ -2,8 +2,11 @@
 __pycache__/
 *.py[cod]
 
-# temporary mvim files
+# temporary files
 *.py.swp
+*.swp
+.spyderworkspace
+.ipynb_checkpoints/
 
 # C extensions
 *.so
