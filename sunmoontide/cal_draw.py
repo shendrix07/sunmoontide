@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Module for drawing a Sun * Moon * Tide calendar using matplotlib. Main
+Module for drawing most of a Sun * Moon * Tide calendar using matplotlib. Main
 function is generate_annual_calendar. Various helper functions may also be
 useful in other applications.
 """
@@ -16,7 +16,11 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 import pkgutil
+from PyPDF2 import PdfFileMerger, PdfFileReader
 from io import BytesIO
+import os
+
+import cal_pages
 
 
 def days_in_month(year_month_string):
@@ -57,25 +61,42 @@ def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
     file_name: string. ".pdf" will NOT be appended to the file_name so the .pdf
                 extension ought to be included in file_name.
     '''
-    with PdfPages(file_name) as pdf_out:
-        #@@ first make cover
-        #@@ then make About page
-        #@@ then make Year-at-a-Glance
+    with PdfPages('temp.pdf') as pdf_out:
+        coverfig = cover(tide_obj)
+        coverfig.savefig(pdf_out, format='pdf')
+        yearviewfig = yearview(tide_obj, sun_obj, moon_obj)
+        yearviewfig.savefig(pdf_out, format='pdf')
+        print('Calendar cover and year-at-a-glance complete.')
 
         for month in months_in_year(tide_obj.year):
             monthfig = month_page(month, tide_obj, sun_obj, moon_obj)
             print(month + " figure created, now saving...")
             monthfig.savefig(pdf_out, format='pdf')
             print("Saved " + month)
-        
-        #@@ add page for Technical Details        
-        
-        d = pdf_out.infodict()
-        d['Title'] = 'Sun * Moon * Tide ' + tide_obj.year + ' Calendar'
-        d['Author'] = 'Sara Hendrix, CruzViz'
-        d['Subject'] = tide_obj.station_name + ", " + tide_obj.state
-        d['CreationDate'] = pd.Timestamp.now().to_pydatetime()    
+
+    d = {}
+    d['Title'] = 'Sun * Moon * Tide {} Calendar'.format(tide_obj.year)
+    d['Author'] = 'Sara Hendrix, CruzViz'
+    d['Subject'] = '{}, {}'.format(tide_obj.station_name, tide_obj.state)
+    d['CreationDate'] = pd.Timestamp.now().to_pydatetime()    
     
+    print('Merging front and back matter into calendar...')    
+    about_pdf = cal_pages.about(tide_obj.station_name)
+    tech_pdf = cal_pages.tech(tide_obj)
+    merger = PdfFileMerger()    
+    with open('temp.pdf','rb') as cal:
+        merger.append(PdfFileReader(cal))
+    with open(about_pdf,'rb') as about:
+        merger.merge(1, PdfFileReader(about))
+    with open(tech_pdf,'rb') as tech:
+        merger.append(PdfFileReader(tech))
+    merger.addMetadata(d)
+    merger.write(file_name)
+                
+    print('Cleaning up temporary files...')
+    os.remove('temp.pdf')
+    os.remove(about_pdf)
+    os.remove(tech_pdf)
     
     
 def month_page(month_string, tide_o, sun_o, moon_o):
@@ -96,7 +117,6 @@ def month_page(month_string, tide_o, sun_o, moon_o):
     # some renaming of things for readability
     tide_min, tide_max = tide_o.annual_min, tide_o.annual_max
     place_name = tide_o.station_name + ", " + tide_o.state
-    time_zone = tide_o.timezone
     month_title = pd.to_datetime(month_string).strftime('%B')
     year_title = tide_o.year
 
@@ -263,12 +283,18 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         im = np.array(im).astype(np.float) / 255
         fig.figimage(im, xo = 505, yo = 70)
     except Exception as e:
-        print('Could not load logo image. Error: ' + e)  
+        print('Could not load logo image. Error: ' + e)  # no exception raised
     
     return fig
-    
-
-''' @@@@@@ FUNCTIONS FOR FRONT AND BACK MATTER GENERATION @@@@@@'''
 
 
+def cover(tide):
+    """Returns a matplotlib.pyplot Figure object, ready to write to PDF.
+    """
+    pass
 
+
+def yearview(tide, sun, moon):
+    """Returns a matplotlib.pyplot Figure object, ready to write to PDF.
+    """
+    pass

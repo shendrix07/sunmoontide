@@ -2,7 +2,7 @@
 """This module builds Tides objects from NOAA Annual Tide Prediction text
 files, with helper functions that may be useful in other applications.
 Search for `&**&` to find code segments that assume a certain format for the
-NOAA text file input. Last updated 6/8/2015 by Sara Hendrix.
+NOAA text file input. Last updated 7/10/2015 by Sara Hendrix.
 """
 
 import itertools
@@ -108,7 +108,6 @@ def read_noaa_header(filename):
         column_names (string): the file line containing column names.  
 
     Examples:
-    
     >>> metdat, colhead = read_noaa_header('example_NOAA_file.TXT')
     >>> metdat['Time Zone'].strip()
     'LST/LDT'
@@ -132,11 +131,10 @@ def read_noaa_header(filename):
     def _check_that(Boolean_valued_statement):
         """If `Boolean_valued_statement` is False, raise a detailed error."""
         if not Boolean_valued_statement:
-            error_message = ('In Tides, read_noaa_header found a problem in ' +
-                            filename +'.\nThis file failed a header format ' +
-                            'check. (`_check_that` in Traceback above.)' +
-                            '\nSee example_noaa_file.TXT for an example ' +
-                            'of the expected file format.')
+            error_message = (
+'In Tides, read_noaa_header found a problem in {}.\nThis file failed a header \
+format check. (`_check_that` in Traceback above.)\nSee example_noaa_file.TXT \
+for an example of the expected file format.'.format(filename))
             raise ValueError(error_message)
     
     _check_that(metadata['NOAA/NOS/CO-OPS\n'] == '')
@@ -153,7 +151,7 @@ def read_noaa_header(filename):
 
 
 def lookup_station_info(StationID):
-    """  Given a NOAA tide prediction station ID, look it up in
+    """ Given a NOAA tide prediction station ID, look it up in
     station_info.csv and return the information in a dict.
     
     station_info.csv has the following columns:
@@ -177,17 +175,19 @@ def lookup_station_info(StationID):
     try:
         lookup = pkgutil.get_data('tides', 'station_info.csv')
     except Exception as e:
-        error_message = ('In Tides, lookup_station_info could not find ' +
-            'its lookup file, station_info.csv. Error: ' + e)
+        error_message = (
+'In Tides, lookup_station_info could not find its lookup file, \
+station_info.csv. Error: {}'.format(e))
         raise IOError(error_message)
 
     all_data = pd.read_csv(BytesIO(lookup), index_col=0)
     try:
         station_data = all_data.loc[StationID]
     except Exception as e:
-        error_message = ('In Tides, lookup_station_info could not find ' +
-        'Station ID ' + StationID + ' in its lookup dataset. Error: ' + e +
-        '... Make sure ' + StationID + ' is present in station_info.csv.')
+        error_message = (
+'In Tides, lookup_station_info could not find Station ID {0} in its lookup \
+dataset. Error: {1}... Make sure Station ID {0} is present in \
+station_info.csv.'.format(StationID, e))
         raise ValueError(error_message)
             
     info = {}
@@ -308,7 +308,7 @@ class Tides:
         self.state = info['state']
         self.latitude = info['latitude']
         self.longitude = info['longitude']
-        self.station_type = info['st_type']
+        self.station_type = info['st_type'].lower()
         self.timezone = info['timezone']
         num_rows_to_skip = len(metadata) + 2
         resolution = 200        # hi res sometimes needed for sparse rawtides
@@ -349,9 +349,11 @@ class Tides:
         self.ref_station_id = metadata['ReferenceToStationId'].strip()
         ref_info = lookup_station_info(self.ref_station_id)
         self.ref_station_name = ref_info['name']
-        # height offsets are a multiplicative factor
-        self.height_offset_low = metadata['HeightOffsetLow'].strip('*').strip()
-        self.height_offset_high = metadata['HeightOffsetHigh'].strip('*').strip()
+        # height offsets are a multiplicative factor - convert to %
+        hol = metadata['HeightOffsetLow'].strip('*').strip()
+        self.height_offset_low = round(float(hol) * 100)
+        hoh = metadata['HeightOffsetHigh'].strip('*').strip()
+        self.height_offset_high = round(float(hoh) * 100)
         # time offsets are in minutes + or -
         self.time_offset_low = metadata['TimeOffsetLow'].strip()
         self.time_offset_high = metadata['TimeOffsetHigh'].strip()
