@@ -2,12 +2,16 @@
 <html>
 <head>
 <style>
+@page {
+    size: Letter;
+    margin: 1in;
+}
 body {
     font-family: Marion;
 }
 
 p {
-    font-size: 0.85em;
+    font-size: 0.9em;
     line-height: 140%;
 }
 
@@ -16,7 +20,10 @@ a {
     text-decoration: none;
 }
 
-h1 { text-align: center }
+h1 { 
+    text-align: center;
+    font-family: Foglihten;
+}
 
 ol.c {
     list-style-type: upper-roman;
@@ -44,7 +51,7 @@ Tide predictions (magnitudes and times of high and low tides) come from the Nati
 <a href="http://tidesandcurrents.noaa.gov/tide_predictions.html">http://tidesandcurrents.noaa.gov/tide_predictions.html</a></p>
 <p>
 Since tidal fluctuations are sinusoidal, the tide curves in the calendar are created by interpolating a half sine wave to connect each subsequent high or low. Each high is the peak of its two adjacent interpolating waves, and each low is the trough of its two adjacent waves. This is not an exact representation of the actual tides, but it is qualitatively similar. NOAA predicts the highs and lows at primary stations using tidal harmonics &mdash; fitting a curve to the historical observations by adding up a series of sinusoidal functions. The highs and lows at secondary or "subordinate" stations are predicted by offsetting the predictions for a nearby primary or "harmonic" station. ${station_name} (station ID: ${station_id}) is a ${station_type} station. ${opt_string}
-<p>NOAA provides tide predictions for ${station_name} in local ${timezone} time. Since daylight savings time changes can interfere with calculations, the tide predictions are converted to UTC (coordinated universal time, which has no daylight savings) for building the tide curves, and then localized back to {timezone} time before drawing the calendar. The filled area plots tend to mask the blips caused by daylight savings time changes, but if you look very carefully, you may spot them.</p>
+<p>NOAA provides tide predictions for ${station_name} in local ${timezone} time. Since daylight savings time changes can interfere with calculations, the tide predictions are converted to UTC (coordinated universal time, which has no daylight savings) for building the tide curves, and then localized back to ${timezone} time before drawing the calendar. The filled area plots tend to mask the blips caused by daylight savings time changes, but if you look very carefully, you may spot them.</p>
 
 <p>NOAA revises the online predictions as new observations come in, so for precise up-to-date tide predictions, check their website.</p>
 
@@ -66,7 +73,7 @@ Since tidal fluctuations are sinusoidal, the tide curves in the calendar are cre
 <h2>Sources</h2>
 
 <p>This printable 8.5x11" PDF calendar is automatically generated from a NOAA Annual Tide Prediction text file. All code was written by Sara Hendrix of CruzViz, in Python (version 3.4.3), with the following additional packages: PyEphem (ephem), pandas, numpy, matplotlib, pytz, pillow, pyPDF2, and WeasyPrint. The calendar source code is free online on GitHub.<br>
-<a href="https://github.com/cruzviz/calendar">https://github.com/cruzviz/calendar</a></p>
+<a href="https://github.com/cruzviz/sunmoontide">https://github.com/cruzviz/sunmoontide</a></p>
 
 <p>The moon phase icons are a font called "Moon Phases", copyrighted by Curtis Clark and used pursuant to license agreement.</p>
 
@@ -83,7 +90,7 @@ Since tidal fluctuations are sinusoidal, the tide curves in the calendar are cre
   </li>
   <li>Non-Commercial Use. Any distribution, exchange, or publication of this calendar, whether in digital or printed hardcopy form, in whole or in part, with or without modification, must be done without any involvement of monetary compensation or commercial gain.</li>
 </ol>
-<h2>Want More?</h2>
+<h2>More Information</h2>
 
 <p>Please contact CruzViz if you are interested in custom wall calendars or commercial licensing.<br>
 <a href="cruzviz.com/contact">cruzviz.com/contact</a></p>

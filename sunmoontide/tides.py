@@ -334,7 +334,7 @@ class Tides:
         rawtides.index = rawtides.index.tz_convert(self.timezone)
         self.raw_tides = rawtides
 
-        if self.station_type == 'Subordinate':
+        if self.station_type == 'subordinate':
             self._set_reference_station_info(metadata)
 
         self.year = str(self.raw_tides.index[100].year)

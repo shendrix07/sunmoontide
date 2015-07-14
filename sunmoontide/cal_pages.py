@@ -53,7 +53,7 @@ page. Expected: sunmoontide/graphics/{}'.format(url[6:]))
 def tech(tide):
     """Returns a pdf filename for the Technical Details section.
     """
-    if tide.station_type == 'Subordinate':
+    if tide.station_type == 'subordinate':
         optstring = 'The predictions are referenced to {0.ref_station_name} \
 (station ID: {0.ref_station_id}). High and low tide heights are \
 {0.height_offset_high}% and {0.height_offset_low}% of the reference station \

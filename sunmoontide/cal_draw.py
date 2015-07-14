@@ -75,15 +75,16 @@ def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
             print("Saved " + month)
 
     d = {}
-    d['Title'] = 'Sun * Moon * Tide {} Calendar'.format(tide_obj.year)
-    d['Author'] = 'Sara Hendrix, CruzViz'
-    d['Subject'] = '{}, {}'.format(tide_obj.station_name, tide_obj.state)
-    d['CreationDate'] = pd.Timestamp.now().to_pydatetime()    
+    d['/Title'] = 'Sun * Moon * Tide {} Calendar'.format(tide_obj.year)
+    d['/Author'] = 'Sara Hendrix, CruzViz'
+    d['/Subject'] = '{}, {}'.format(tide_obj.station_name, tide_obj.state)
+    d['/CreationDate'] = pd.Timestamp.now().to_pydatetime().strftime('%c')
     
-    print('Merging front and back matter into calendar...')    
+    print('Merging front and back matter into calendar... \
+(ignore PdfReadWarnings)')    
     about_pdf = cal_pages.about(tide_obj.station_name)
     tech_pdf = cal_pages.tech(tide_obj)
-    merger = PdfFileMerger()    
+    merger = PdfFileMerger(strict = False)    
     with open('temp.pdf','rb') as cal:
         merger.append(PdfFileReader(cal))
     with open(about_pdf,'rb') as about:
@@ -291,10 +292,24 @@ def month_page(month_string, tide_o, sun_o, moon_o):
 def cover(tide):
     """Returns a matplotlib.pyplot Figure object, ready to write to PDF.
     """
-    pass
+    fig = plt.figure(figsize=(8.5,11))
+    fig.text(0.5, 0.8, 'Sun * Moon * Tide', horizontalalignment = 'center',
+             fontsize = '68', fontname = 'FoglihtenNo01')
+    fig.text(0.5, 0.25, '{}'.format(tide.year), 
+             horizontalalignment = 'center', fontsize = '96',
+             fontname = 'FoglihtenNo01')
+    fig.text(0.5, 0.18, '{}, {}'.format(tide.station_name, tide.state),
+             horizontalalignment = 'center', fontsize = '24',
+             fontname = 'Foglihten')
+    return fig
 
 
 def yearview(tide, sun, moon):
     """Returns a matplotlib.pyplot Figure object, ready to write to PDF.
     """
-    pass
+    fig = plt.figure(figsize=(8.5,11))
+    fig.text(0.5, 0.875, '{} at a Glance'.format(tide.year),
+             horizontalalignment = 'center', fontsize = '64',
+             fontname = 'Foglihten')
+    
+    return fig

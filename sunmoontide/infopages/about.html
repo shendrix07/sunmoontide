@@ -2,13 +2,20 @@
 <html>
 <head>
 <style>
+@page {
+    size: Letter;
+    margin: 1in;
+}
 body {
     font-family: Marion;
     font-size: 0.875em;
     line-height: 1.3em;
 }
 
-h1 { text-align: center }
+h1 { 
+    text-align: center;
+    font-family: Foglihten;
+}
 
 a { 
     color: #0000FF;
@@ -23,9 +30,8 @@ img.little {
     height: 30px;
 }
 
-#footer {
+.footer {
     margin: auto;
-    width: 960px;
     position: fixed;
     bottom: 0;
 }
@@ -37,19 +43,20 @@ img.little {
 
 <p>The Sun * Moon * Tide Calendar shows the daily timing and relative heights of the sun and moon rising, ascending, descending, and setting, and of the tide coming in and going out.</p>
 
-<p>Where are the grids, tick marks every three hours, or numbers for exact heights and times? They have been left out for two reasons: one, to provide a more aesthetically pleasing visual; and two, because they are misleading. These tides are forecasted up to a year or more beforehand and, while reasonably accurate, are not perfect. Even if they were perfect, the exact conditions at the nearest tide prediction station are not what you will see at your favorite beach. The Sun * Moon * Tide Calendar shows the overall pattern, not the minutae. It aims to be informative enough for everyday outings and beach enjoyment. Use the sun intensity to assess your potential sun exposure; look at the moon phase and height to see whether there is enough moonlight for a night excursion; check whether the tide will be unusually high or low, and roughly when it will be coming in or going out.</p>
+<p>Where are the grids, tick marks every three hours, or numbers for exact heights and times? They have been left out for two reasons: one, to provide a more aesthetically pleasing visual; and two, because they are misleading. The forecasts for the tide prediction station, while generally accurate, are not precisely what you will see at your favorite beach. The Sun * Moon * Tide Calendar shows the overall pattern, not the minutae. It aims to be informative enough for everyday outings and beach enjoyment. Use the sun intensity to assess your potential sun exposure; look at the moon phase and height to see whether there is enough moonlight for a night excursion; check whether the tide will be unusually high or low, and roughly when it will be coming in or going out.</p>
 
 <p>These sun, moon, and tide patterns are calculated especially for ${st_name}, and will be different at other places on Earth. The tides respond dramatically to the seasons and the lunar cycle, and the sun is up higher and longer during the summer months. The Sun * Moon * Tide Calendar puts these patterns in visual form, to help us to see the rhythms of the sun, moon, and tide around us.</p>
 
 <p>Visit <a href="cruzviz.com/tides">cruzviz.com/tides</a> and read the Technical Details for more information.</p>
 
-<img src="graph:Spacesship.svg"> @@@@@ replace with annotated graph/icon legend SVG file @@@@@@@
+<center>
+<img src="graph:legend.svg">
 
 <div id="footer">
 <p>
 &copy; <img class="little" src="graph:logo.png"> </p>
 <p>This calendar is free to print, copy, and share, for non-commercial use.<br>Complete license terms are provided in Technical Details.</p>
 </div>
-
+</center>
 </body>
 </html>
