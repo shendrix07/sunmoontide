@@ -82,7 +82,8 @@ def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
     
     print('Merging front and back matter into calendar... \
 (ignore PdfReadWarnings)')    
-    about_pdf = cal_pages.about(tide_obj.station_name)
+    about_pdf = cal_pages.about('{}, {}'.format(tide_obj.station_name,
+                                                    tide_obj.state))
     tech_pdf = cal_pages.tech(tide_obj)
     merger = PdfFileMerger(strict = False)    
     with open('temp.pdf','rb') as cal:
@@ -241,7 +242,7 @@ def month_page(month_string, tide_o, sun_o, moon_o):
     for i in range(init_day, 7):  # day-of-week labels on top row subplots
         plt.text(0.5, 1.08, day_names[i],
                  horizontalalignment = 'center',
-                 fontsize = 12, fontname = 'Foglihten',
+                 fontsize = 12, fontname = 'Alegreya',
                  transform = daily_axes[i - init_day].transAxes)
     for i in range(init_day):  # handle the blank boxes on top row
         temp_ax = plt.subplot(gs[i])
@@ -265,16 +266,16 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         temp2_ax.spines['bottom'].set_linewidth(1.5)
         plt.text(0.5, 1.08, day_names[i],     # doy-of-week labels on blanks
                      horizontalalignment = 'center',
-                     fontsize = 12, fontname = 'Foglihten',
+                     fontsize = 12, fontname = 'Alegreya',
                      transform = temp_ax.transAxes)
 
     # title and footer text
     fig.text(0.08, 0.875, month_title, horizontalalignment = 'left',
-             fontsize = '72', fontname = 'Foglihten')
+             fontsize = '72', fontname = 'Alegreya SC')
     fig.text(0.92, 0.875, year_title, horizontalalignment = 'right',
-             fontsize = '72', fontname = 'Foglihten')
+             fontsize = '72', fontname = 'Alegreya SC')
     fig.text(0.92, 0.1, place_name, horizontalalignment = 'right',
-             fontsize = '16', fontname = 'Foglihten')
+             fontsize = '16', fontname = 'Alegreya')
     fig.text(0.92, 0.13, 'Sun * Moon * Tide', horizontalalignment = 'right',
              fontsize = '36', fontname = 'FoglihtenNo01')
     # cruzviz logo on footer
@@ -302,16 +303,16 @@ def cover(tide):
     x = (R + a * np.sin(n * theta)) * np.cos(theta)
     y = (R + a * np.sin(n * theta)) * np.sin(theta)
 
-    entire_lunar_cycle = '0ABCDEFGHIJKLM@NOPQRSTUVWXYZ'  # the dark part
-    moon_icon = 'TUWX0CDFGHJK@PQS'   # subset of moon icons to plot radially
+#    entire_lunar_cycle = '0ABCDEFGHIJKLM@NOPQRSTUVWXYZ'
+    moon_icon = 'TUWX0CDFGHJK@PQS'   # subset of moon icons, ready to plot radially
     moontheta = np.linspace(0, 2 * np.pi, 17)[:-1]
     o = 0.3      # offset for moon icons to account for right alignment
 
     fig = plt.figure(figsize=(8.5,11))
     ax = plt.subplot(111)
     for frac in np.linspace(0, 1, 20):
-        ax.plot(frac * x, frac * y, '-', c = '#52ABB7', lw = 5, alpha = 0.5)
-    #ax.plot(4 * cos(theta), 4 * sin(theta), '--', c = 'red')  #placement check
+        ax.plot(frac * x, frac * y, '-', c = '#52ABB7', lw = 3, alpha = 0.5)
+    #ax.plot(4 * cos(theta), 4 * sin(theta), '--', c = 'red')  # moon placement check
     for daynum in range(16):
         th = moontheta[daynum]
         mx = 2 * R * np.cos(th) + o
@@ -323,8 +324,8 @@ def cover(tide):
         ax.text(mx, my, '*', ha = 'right', fontsize = 12, 
                 color = '#D7A8A8', alpha = 0.25, fontname = 'moon phases')
     # the sun
-    ax.scatter(0, 14, s=100000, marker = (128, 1, 0),
-                           facecolor = '#FFEB00', linewidth = 0.05,
+    ax.scatter(0, 18, s=200000, marker = (128, 1, 0),
+                           facecolor = '#FFEB00', linewidth = 0.4,
                            edgecolor = '#FFEB00')
 
     ax.axis([-R * 5, R * 5, -R * 5, R * 5])
@@ -343,16 +344,118 @@ def cover(tide):
              fontname = 'FoglihtenNo01')
     fig.text(0.5, 0.15, '{}, {}'.format(tide.station_name, tide.state),
              horizontalalignment = 'center', fontsize = '24',
-             fontname = 'Foglihten')
+             fontname = 'Alegreya SC')
     return fig
-    
 
-def yearview(tide, sun, moon):
+
+def yearview(tide_o, sun_o, moon_o):
     """Returns a matplotlib.pyplot Figure object, ready to write to PDF.
     """
     fig = plt.figure(figsize=(8.5,11))
-    fig.text(0.5, 0.875, '{} at a Glance'.format(tide.year),
-             horizontalalignment = 'center', fontsize = '64',
-             fontname = 'Foglihten')
+    fig.text(0.5, 0.875, '{} Overview'.format(tide_o.year),
+             horizontalalignment = 'center', fontsize = '48',
+             fontname = 'Alegreya SC')
+    
+    gs1 = gridspec.GridSpec(2, 3)
+    gs1.update(left = 0.05, right = 0.95, bottom = 0.65, top = 0.8,
+               wspace = 0.0, hspace = 0.0)
+    gs2 = gridspec.GridSpec(2, 3)
+    gs2.update(left = 0.05, right = 0.95, bottom = 0.45, top = 0.6,
+               wspace = 0.0, hspace = 0.0)
+    gs3 = gridspec.GridSpec(2, 3)
+    gs3.update(left = 0.05, right = 0.95, bottom = 0.25, top = 0.4,
+               wspace = 0.0, hspace = 0.0)
+    gs4 = gridspec.GridSpec(2, 3)
+    gs4.update(left = 0.05, right = 0.95, bottom = 0.05, top = 0.2,
+               wspace = 0.0, hspace = 0.0)
+        
+    gsx = [gs1, gs2, gs3, gs4]
+    allmonths = list(months_in_year(tide_o.year))
+    month_chunks = [allmonths[:3], allmonths[3:6], allmonths[6:9],
+                    allmonths[9:]]
+    
+    for chunk, gsi in zip(month_chunks, gsx):
+        for ind in [0, 1, 2]:
+            month = chunk[ind]
+            month_of_sun = sun_o.altitudes[month]
+            month_of_moon = moon_o.altitudes[month]
+            month_of_tide = tide_o.all_tides[month]
+
+            # convert indices to matplotlib-friendly datetime format
+            Si = month_of_sun.index.to_pydatetime()
+            Mi = month_of_moon.index.to_pydatetime()
+            Ti = month_of_tide.index.to_pydatetime()
+
+            # zeros for plotting the filled area under each curve
+            Sz = np.zeros(len(Si))
+            Mz = np.zeros(len(Mi))
+            Tz = np.zeros(len(Ti))
+
+            # x-limits based on first and last tide interp time - for
+            # cases where only have one or two hi/lo tides per day 
+            # - no more odd cut offs near borders
+            start_time = matplotlib.dates.date2num(Ti[0])
+            stop_time = matplotlib.dates.date2num(Ti[-1])
+
+            # sun and moon heights on top
+            ax1 = plt.subplot(gsi[ind])
+            ax1.fill_between(Si, month_of_sun / (np.pi / 2), Sz, 
+                             color = '#FFEB00', alpha = 1)  # altitude angle
+            ax1.fill_between(Mi, month_of_moon / (np.pi / 2), Mz, 
+                             color = '#D7A8A8', alpha = 0.25)
+            ax1.set_xlim((start_time, stop_time))
+            ax1.set_ylim((0, 1))
+            ax1.set_xticks([])
+            ax1.set_yticks([])
+            for side in ['top', 'left', 'right']:
+                ax1.spines[side].set_linewidth(1.5)
+            ax1.spines['bottom'].set_visible(False)
+
+            # add new moon icon
+            new_moon_time = moon_o.phase_day_num[month].idxmin().to_pydatetime()
+            ax1.text(new_moon_time, 0.69, '0',   # the dark part
+                     ha = 'right', fontsize = 12, color = '0.75',
+                     fontname = 'moon phases')
+            ax1.text(new_moon_time, 0.69, '*',   # the white part
+                     ha = 'right', fontsize = 12, color = '#D7A8A8',
+                     alpha = 0.25, fontname = 'moon phases')
+            
+            # add solstice or equinox icon, if needed this month
+            sun_icon_col = {
+                'spring equinox':   '#CCFFCC',
+                'summer solstice':  '#FFFFA3',
+                'fall equinox':     '#D56F28',
+                'winter solstice':  '#B4EAF4'
+            }
+            monthnum = pd.to_datetime(month).month
+            if monthnum in sun_o.events.index.month:
+                solar_event = sun_o.events[monthnum == sun_o.events.index.month]
+                xloc = matplotlib.dates.date2num(solar_event.index[0].to_pydatetime())
+                sol_color = sun_icon_col[solar_event[0]]
+                ax1.scatter(xloc, 0.25, s=400, marker = (16, 1, 0),
+                               facecolor = sol_color, linewidth = 0.5,
+                               edgecolor = 'black', zorder = 300, 
+                               clip_on = False)
+
+            # add month name to top of the box
+            month_name = pd.to_datetime(month).strftime('%B')
+            plt.text(0.5, 1.08, month_name, horizontalalignment = 'center',
+                 fontsize = 12, fontname = 'Alegreya', 
+                 transform = ax1.transAxes)
+                
+            # tide magnitudes below
+            ax2 = plt.subplot(gsi[ind + 3])
+            ax2.fill_between(Ti, month_of_tide, Tz, 
+                             color = '#52ABB7', alpha = 0.8)
+            ax2.set_xlim((start_time, stop_time))
+            tide_margin = (tide_o.annual_max - tide_o.annual_min) / 60
+            ax2.set_ylim((tide_o.annual_min - 1.5 * tide_margin, 
+                          tide_o.annual_max + tide_margin))
+            ax2.set_xticks([])
+            ax2.set_yticks([])
+            for side in ['bottom', 'left', 'right']:
+                ax2.spines[side].set_linewidth(1.5)
+            ax2.spines['top'].set_linewidth(0.5)
+            ax2.set_zorder(1500)
     
     return fig

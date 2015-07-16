@@ -1,0 +1,13 @@
+### MATPLOTLIBRC
+
+interactive  : False
+font.serif          : Alegreya, Alegreya SC, serif
+font.fantasy        : moon phases, FoglihtenNo01, fantasy
+figure.dpi       : 300      # figure dots per inch
+figure.facecolor : white    # figure facecolor; 0.75 is scalar gray
+savefig.dpi         : 300      # figure dots per inch
+savefig.format      : pdf      # png, ps, pdf, svg
+pdf.compression   : 3 # integer from 0 to 9
+                       # 0 disables compression (good for debugging)
+pdf.fonttype       : 42         # Output Type 3 (Type3) or Type 42 (TrueType)
+
