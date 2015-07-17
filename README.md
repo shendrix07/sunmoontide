@@ -5,9 +5,9 @@
 
 ### What is a Sun * Moon * Tide calendar? What does the code do?
 
-This code produces a PDF file containing a Sun * Moon * Tide calendar, designed to be easily printable on a home or office printer (ideally color printer) with 8.5x11" paper. An example 2015 calendar for Santa Cruz, California is available [here](https://github.com/cruzviz/sunmoontide/blob/master/SunMoonTide_2015_9413745.pdf) (~20 MB PDF file). The only external input required is a text file of published annual tide tables. These files are provided by the U.S. National Oceanic and Atmospheric Administration (NOAA) for American coastal areas, including territories and neighboring islands. There are over 3,000 NOAA tide prediction stations.
+This code produces a PDF file containing a Sun * Moon * Tide calendar, designed to be easily printable on a home or office printer (ideally color printer) with 8.5x11" paper. An example 2015 calendar for Santa Cruz, California is available [here](https://github.com/cruzviz/sunmoontide/blob/master/SampleCalendar.pdf) (~17 MB PDF file). The only external input required is a text file of published annual tide tables. These files are provided by the U.S. National Oceanic and Atmospheric Administration (NOAA) for American coastal areas, including territories and neighboring islands. There are over 3,000 NOAA tide prediction stations.
 
-The program reads in all the high and low tides and interpolates them to produce sinusoidal curve data. It parses the input file header for the station ID, which is used to grab required information like location coordinates, time zone, and placename from a lookup file. (This is the `tides.py` module.) Then it calculates sun and moon positions relative to that location over the whole year, plus daily moon phases and solar equinoxes/solstices. (The `astro.py` module.) It creates a pretty calendar showing tidal fluctuations and sun and moon movements for each day of the year. (The `cal_draw.py` module - almost completely done in matplotlib.) It generates the front and back matter that contains the input's placename and other location-specific information, and puts it all together in a printable PDF (the `cal_pages.py` module). It can take a few minutes to run, mainly waiting for matplotlib to crank out the monthly pages. The resulting PDF output file is about 20 MB. Overall, it's about 1,000 lines of code divided between 4 modules, stitched together by `__init__.py` and `__main__.py`.
+The program reads in all the high and low tides and interpolates them to produce sinusoidal curve data. It parses the input file header for the station ID, which is used to grab required information like location coordinates, time zone, and placename from a lookup file. (This is the `tides.py` module.) Then it calculates sun and moon positions relative to that location over the whole year, plus daily moon phases and solar equinoxes/solstices. (The `astro.py` module.) It creates a pretty calendar showing tidal fluctuations and sun and moon movements for each day of the year. (The `cal_draw.py` module - almost completely done in matplotlib.) It generates the front and back matter that contains the input's placename and other location-specific information, and puts it all together in a printable PDF (`cal_draw.py` and `cal_pages.py` modules). It can take a few minutes to run, mainly waiting for matplotlib to crank out the pages. The resulting PDF output file is about 15 to 20 MB. Overall, it's around 1,200 lines of code divided between 4 modules, stitched together by `__init__.py` and `__main__.py`.
 
 ----------------------
 
@@ -41,30 +41,31 @@ To make the calendar look right, you will need to install a few fonts on your sy
      __main__.py
      astro.py
      cal_draw.py
+     cal_pages.py
      fonts/
-        moon_phases/
-          LICENSE.TXT
-          moon_phases.ttf
-        foglihten/
-          FoglihtenNo01.otf
-          SIL Open Font License.txt
-	alegreya/
-	  Alegreya-Regular.otf
-          AlegreyaSC-Regular.otf
-          SIL Open Font License.txt
-     graphics/
-        logo.png
-        legend.svg
-     infopages/
-        about.html
-        tech.html
-     station_info.csv
-     tides.py
+       alegreya/
+         Alegreya-Regular.otf
+         AlegreyaSC-Regular.otf
+         SIL Open Font License.txt
+       foglihten/
+         FoglihtenNo01.otf
+         SIL Open Font License.txt
+       moon_phases/
+         LICENSE.TXT
+         moon_phases.ttf
+   graphics/
+       legend.svg
+       logo.png
+   infopages/
+       about.html
+       tech.html
+   station_info.csv
+   tides.py
    ```
 
 1. Make sure you have Python 3.4 installed along with all the packages listed in Requirements. It is wise to do so in a virtual environment of some kind. Options include:
   * Use Anaconda/conda and the environment.yml file to create a new environment and activate it. See http://conda.pydata.org/docs/using/envs.html - scroll down to "Use environment from file". Syntax varies by operating system.
-  * Create and activate a new Python 3.4 virtual environment using any tool you prefer. Make sure you have pip installed, and then run the requirements.txt file to install everything needed to run the Sun * Moon * Tide calendar maker. `pip install -r requirements.txt`
+  * Create and activate a new Python 3.4 virtual environment using any tool you prefer. Make sure you have pip installed in the environment, and then run the requirements.txt file to install everything needed to run the Sun * Moon * Tide calendar maker. `pip install -r requirements.txt`
   * If you work in Python 3.4 and you don't mind having these specific package versions installed on your main environment, you can also run `pip install -r requirements.txt` directly, but this is not preferred because of the potential for version conflicts.
 
 2. Install the 3 fonts filed under the `sunmoontide/fonts` folder: Moon Phases, FoglihtenNo01, and Alegreya (both regular and SC - small caps).
@@ -78,15 +79,11 @@ To make the calendar look right, you will need to install a few fonts on your sy
 
 2. Move the NOAA annual text file into the root directory of the package. Rename the NOAA file to a filename that contains no spaces - I will call it `your_filename` here. It doesn’t need to have a file extension, though \*.txt can be handy if you want to easily click open the file and look at it yourself.
 
-3. With your virtual environment activated, get a terminal open in the package root directory. You are in the right place if `ls` shows you a directory named `sunmoontide` and a file called `your_filename` (or whatever you named it), plus a few other files like `README.md` and `matplotlibrc`. Now tell python to run `sunmoontide your_filename`:
+3. With your virtual environment activated, get a terminal/command prompt in the package root directory. You are in the right place if `ls` shows you a directory named `sunmoontide` and a file called `your_filename` (or whatever you named it), plus a few other files like `README.md` and `matplotlibrc`. Now tell python to run `sunmoontide your_filename`:
 
    `$ python sunmoontide your_filename`
 
-   Or depending on your defaults:
-
-   `$ python3 sunmoontide your_filename`
-
-4. Output will update you on the progress of the program. It can take a few minutes to run, mostly spend drawing the month pages in matplotlib. When complete, your PDF calendar will appear in the current working directory. It will be named `SunMoonTide_{year}_{NOAA station ID}.pdf`.
+4. Output will update you on the progress of the program. It can take a few minutes to run, mostly spend drawing the plot-heavy pages in matplotlib. When complete, your PDF calendar will appear in the current working directory. It will be named `SunMoonTide_{year}_{NOAA station ID}.pdf`.
 
 --------
 ### Adapting to other input file formats:

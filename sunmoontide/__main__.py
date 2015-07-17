@@ -7,7 +7,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filename',
-                    help = 'Path to a NOAA annual tide prediction file.')
+                    help = 'Path to a NOAA annual tide tables text file.')
 args = parser.parse_args()
 
 if not os.path.isfile(args.filename):

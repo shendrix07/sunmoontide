@@ -298,7 +298,28 @@ class Astro:
                     moon_day += 1
             assert(len(cycle_days) == len(daily_times))
             self.phase_day_num = pd.Series(cycle_days, daily_times)
-
+            
+            exact_names = []
+            exact_times = []
+            nowdate = begin
+            if cycle_days[0] < 14:
+                next_full = ephem.next_full_moon(nowdate)
+                exact_times.append(next_full.datetime())
+                exact_names.append('full')
+                nowdate = next_full
+            while nowdate < end:
+                next_new = ephem.next_new_moon(nowdate)
+                exact_times.append(next_new.datetime())
+                exact_names.append('new')
+                nowdate = next_new
+                next_full = ephem.next_full_moon(nowdate)
+                exact_times.append(next_full.datetime())
+                exact_names.append('full')
+                nowdate = next_full
+            half_phases = pd.Series(exact_names, exact_times)
+            half_phases.index = half_phases.index.tz_localize('UTC')
+            half_phases.index = half_phases.index.tz_convert(timezone)
+            self.half_phases = half_phases
 
 
 if __name__ == "__main__":

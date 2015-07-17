@@ -64,15 +64,17 @@ def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
     with PdfPages('temp.pdf') as pdf_out:
         coverfig = cover(tide_obj)
         coverfig.savefig(pdf_out, format='pdf')
+        print('Calendar cover saved.')
         yearviewfig = yearview(tide_obj, sun_obj, moon_obj)
+        print('{} Overview created, now saving...'.format(tide_obj.year))
         yearviewfig.savefig(pdf_out, format='pdf')
-        print('Calendar cover and year-at-a-glance complete.')
+        print('{} Overview saved.'.format(tide_obj.year))
 
         for month in months_in_year(tide_obj.year):
             monthfig = month_page(month, tide_obj, sun_obj, moon_obj)
-            print(month + " figure created, now saving...")
+            print('{} figure created, now saving...'.format(month))
             monthfig.savefig(pdf_out, format='pdf')
-            print("Saved " + month)
+            print('Saved {}'.format(month))
 
     d = {}
     d['/Title'] = 'Sun * Moon * Tide {} Calendar'.format(tide_obj.year)
@@ -219,7 +221,7 @@ def month_page(month_string, tide_o, sun_o, moon_o):
     # add solstice or equinox icon, if needed this month
     sun_icon_col = {
         'spring equinox':   '#CCFFCC',
-        'summer solstice':  '#FFFFA3',
+        'summer solstice':  '#E2AAFF',
         'fall equinox':     '#D56F28',
         'winter solstice':  '#B4EAF4'
     }
@@ -311,7 +313,7 @@ def cover(tide):
     fig = plt.figure(figsize=(8.5,11))
     ax = plt.subplot(111)
     for frac in np.linspace(0, 1, 20):
-        ax.plot(frac * x, frac * y, '-', c = '#52ABB7', lw = 3, alpha = 0.5)
+        ax.plot(frac * x, frac * y, '-',color = '#52ABB7', lw = 3, alpha = 0.5)
     #ax.plot(4 * cos(theta), 4 * sin(theta), '--', c = 'red')  # moon placement check
     for daynum in range(16):
         th = moontheta[daynum]
@@ -411,19 +413,35 @@ def yearview(tide_o, sun_o, moon_o):
                 ax1.spines[side].set_linewidth(1.5)
             ax1.spines['bottom'].set_visible(False)
 
-            # add new moon icon
-            new_moon_time = moon_o.phase_day_num[month].idxmin().to_pydatetime()
-            ax1.text(new_moon_time, 0.69, '0',   # the dark part
-                     ha = 'right', fontsize = 12, color = '0.75',
-                     fontname = 'moon phases')
-            ax1.text(new_moon_time, 0.69, '*',   # the white part
-                     ha = 'right', fontsize = 12, color = '#D7A8A8',
-                     alpha = 0.25, fontname = 'moon phases')
+            # add full/new moon icon(s)
+            luns = moon_o.half_phases[month]            
+            if luns[luns == 'full'].any():
+                full_moon_times = luns[luns == 'full'].index.to_pydatetime()
+                for moontime in full_moon_times:
+                    ax1.text(moontime, 0.69, '@',   # the dark part
+                         ha = 'left', fontsize = 12, color = '0.75',
+                         fontname = 'moon phases', zorder = 1400)
+                    ax1.text(moontime, 0.69, '*',   # the white part
+                         ha = 'left', fontsize = 12, color = '#D7A8A8',
+                         alpha = 0.25, fontname = 'moon phases',
+                         zorder = 1410)
+            if luns[luns == 'new'].any():
+                new_moon_times = luns[luns == 'new'].index.to_pydatetime()
+                for moontime in new_moon_times:
+                    ax1.text(moontime, 0.69, '0',   # the dark part
+                             ha = 'left', fontsize = 12, color = '0.75',
+                             fontname = 'moon phases', zorder = 1500)
+                    ax1.text(moontime, 0.69, '*',   # the white part
+                             ha = 'left', fontsize = 12, color = '#D7A8A8',
+                             alpha = 0.25, fontname = 'moon phases',
+                             zorder = 1510)
+            if luns.index[-1].day > 25:
+                ax1.set_zorder(10000 - luns.index[-1].month)
             
             # add solstice or equinox icon, if needed this month
             sun_icon_col = {
                 'spring equinox':   '#CCFFCC',
-                'summer solstice':  '#FFFFA3',
+                'summer solstice':  '#E2AAFF',
                 'fall equinox':     '#D56F28',
                 'winter solstice':  '#B4EAF4'
             }
