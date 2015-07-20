@@ -1,3 +1,1 @@
-# -*- coding: utf-8 -*-
-from tides import Tides
-#from astro import Astro
+# This file is empty. All necessary imports are performed inside __main__.py.

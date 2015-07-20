@@ -156,6 +156,11 @@ def lookup_station_info(StationID):
     
     station_info.csv has the following columns:
     StationID, StationName, State, Latitude, Longitude, StationType, Timezone
+
+    %**% This function would need to be changed if the station is not a NOAA
+    tide prediction station. For any new stations not currently present in
+    station_info.csv, the function will work properly if the new station is
+    added to station_info.csv with the correct format.
         
     Args:
         StationID (string): a NOAA station ID code.
@@ -324,7 +329,9 @@ class Tides:
                        index_col=0)
         del rawtides['High/Low']
         del rawtides['cm']
-        rawtides.index = rawtides.index.tz_localize(self.timezone)
+        # clean up time index, assume ambiguous times are non-DST
+        rawtides.index = rawtides.index.tz_localize(self.timezone,
+                ambiguous = np.zeros(len(rawtides), dtype = bool))
         # convert to UTC for calculations        
         rawtides.index = rawtides.index.tz_convert('UTC')
         self.all_tides = build_all_tides(rawtides, resolution, 'ft',
