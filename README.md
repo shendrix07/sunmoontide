@@ -93,6 +93,7 @@ Procedures that will need revision are in the `tides.py` module. Search for `&**
   * the station's location coordinates (latitude/longitude) - required for calculating sun and moon altitudes
   * placename (station name and state) - for various text annotations
   * other station info for the Technical Details section - Technical Details may also need revision to maintain accuracy - see `infopages/tech.html` and the `cal_pages.py` module
+
 Currently, some station information variables are set by parsing them from the header of the input file, but many essential ones (including location coordinates and timezone) are not available in NOAA annual tide tables files, so they are looked up in `station_info.csv`. This lookup file was created by web scraping the NOAA Tide Predictions site for location coordinates, and geocoding those coordinates to determine tzinfo/IANA time zones for each station.
 
 ---------
