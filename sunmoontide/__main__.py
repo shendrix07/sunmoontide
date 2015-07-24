@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from tides import Tides
 from astro import Astro
-from caldraw2 import generate_annual_calendar
+from cal_draw import generate_annual_calendar
 import argparse
 import os
 
