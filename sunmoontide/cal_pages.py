@@ -2,7 +2,7 @@
 """
 Module to make the About and Technical Details for the calendar. For use in
 generate_annual_calendar function inside module cal_draw.py. These are the
-pages that require more advanced text layout and formatting, so using HTML
+pages that require more advanced text layout and formatting, so we use HTML
 templates and WeasyPrint instead of matplotlib.
 """
 from io import BytesIO
@@ -12,7 +12,8 @@ import weasyprint
 
 
 def about(st_name):
-    """Returns a pdf filename for the About page.
+    """Creates a one-page PDF for the About page in the current working
+    directory, and returns its filename.
     """
     try:
         abouthtml = pkgutil.get_data('cal_pages', 'infopages/about.html')
@@ -21,27 +22,32 @@ def about(st_name):
 page. Expected: sunmoontide/infopages/about.html')
         raise IOError(e)
 
-    def _my_fetcher(url): # locate svg/png image files in sunmoontide/graphics/
-        if url.startswith('graph:') and url.endswith('png'):
+    def _my_fetcher(url):
+        """Fetch svg/png image files in sunmoontide/graphics/ for html source url
+        references of the form: '<img src="graph:nameofimage.svg">'
+        File extensions must be 'png' or 'svg'.
+        """
+        if url.startswith('graph:'):
             try:
-                grb = pkgutil.get_data('cal_pages', 'graphics/{}'.format(url[6:]))
+                g = pkgutil.get_data('cal_pages', 'graphics/{}'.format(url[6:]))
             except Exception as e:
                 print('Could not find a graphic for the About the Calendar \
-page. Expected: sunmoontide/graphics/{}'.format(url[6:]))
+    page. Expected: sunmoontide/graphics/{}'.format(url[6:]))
                 raise IOError(e)
-            return dict(string = BytesIO(grb).read(), mime_type = 'image/png')
-        elif url.startswith('graph:') and url.endswith('svg'):
-            try:
-                grb = pkgutil.get_data('cal_pages', 'graphics/{}'.format(url[6:]))
-            except Exception as e:
-                print('Could not find a graphic for the About the Calendar \
-page. Expected: sunmoontide/graphics/{}'.format(url[6:]))
-                raise IOError(e)
-            return dict(string = BytesIO(grb).read(),
-                        mime_type = 'image/svg+xml')
+            
+            if url.endswith('png'):
+                mt = 'image/png'
+            elif url.endswith('svg'):
+                mt = 'image/svg+xml'
+            else:
+                raise IOError('Unknown file type referenced in \
+    infopages/about.html - {} - Could not fetch this URL. Local image files must \
+    have `.svg` or `.png` extensions.'.format(url))
+    
+            return dict(string = BytesIO(g).read(), mime_type = mt)
+            
         else:
             return weasyprint.default_url_fetcher(url)
-    #html source: '<img src="graph:nameofimage.svg">'  <-- must be svg or png
 
     abouttemplate = Template(BytesIO(abouthtml).read().decode('utf-8'))
     abouthtml = abouttemplate.substitute(st_name = st_name)
@@ -51,7 +57,8 @@ page. Expected: sunmoontide/graphics/{}'.format(url[6:]))
 
 
 def tech(tide):
-    """Returns a pdf filename for the Technical Details section.
+    """Creates a multi-page PDF for the Technical Details section in the
+    current working directory, and returns its filename.
     """
     if tide.station_type == 'subordinate' and tide.height_offset_low > 50:
         optstring = 'The predictions are referenced to {0.ref_station_name} \

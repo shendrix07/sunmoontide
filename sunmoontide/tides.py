@@ -2,7 +2,7 @@
 """This module builds Tides objects from NOAA Annual Tide Prediction text
 files, with helper functions that may be useful in other applications.
 Search for `&**&` to find code segments that assume a certain format for the
-NOAA text file input. Last updated 7/10/2015 by Sara Hendrix.
+NOAA text file input. Last updated 7/24/2015 by Sara Hendrix.
 """
 
 import itertools
@@ -86,7 +86,7 @@ def sine_interp(height1, height2, resolution, remove_end=False):
 
 def read_noaa_header(filename):
     """ Return the metadata in the header of a NOAA Annual Tide Prediction
-    text file, plus the line of column names. Assumes headers are separated
+    text file, plus the line of column names. Assumes header is separated
     from main data table by a single blank/whitespace-only line, and then
     the next line is the column names.
 
@@ -105,7 +105,7 @@ def read_noaa_header(filename):
                          from the file - no stripping or reformatting.
                          If header line has no ': ' substring, the key contains
                          the whole line, and value = ''.
-        column_names (string): the file line containing column names.  
+        column_names (string): the entire file line containing column names.  
 
     Examples:
     >>> metdat, colhead = read_noaa_header('example_NOAA_file.TXT')
@@ -298,8 +298,8 @@ def build_all_tides(raw_tides, resolution, use_column, extend_ends=False):
 
 class Tides:
     """A class with everything related to a NOAA annual tide prediction file.
-    Purpose is to calculate and then store the various input required to graph
-    tides and provide station information for a Sun * Moon * Tide calendar.
+    Purpose is to store the various input required to graph tides and provide
+    station information for a Sun * Moon * Tide calendar.
     """
     def __init__(self, NOAA_filename):
         """Take the filename and build everything that needs to be built.
@@ -316,10 +316,10 @@ class Tides:
         self.station_type = info['st_type'].lower()
         self.timezone = info['timezone']
         num_rows_to_skip = len(metadata) + 2
-        resolution = 200        # hi res sometimes needed for sparse rawtides
+        resolution = 100     # hi res set for cases of 1-2 highs/lows per day
         
 # ------------ Read annual tide table into pandas DataFrame--------------
-# NOTE: &**& format dependant - main high/low data column name = 'ft'
+# NOTE: &**& format dependant ... main high/low data column name = 'ft'
         rawtides = pd.read_csv(NOAA_filename,
                        names = ['Date', 'Day', 'Time', 'AM/PM', 
                                 'ft', 'cm', 'High/Low'],
@@ -329,13 +329,13 @@ class Tides:
                        index_col=0)
         del rawtides['High/Low']
         del rawtides['cm']
-        # clean up time index, assume ambiguous times are non-DST
+        # localize datetime index, assume ambiguous times are non-DST
         rawtides.index = rawtides.index.tz_localize(self.timezone,
                 ambiguous = np.zeros(len(rawtides), dtype = bool))
         # convert to UTC for calculations        
         rawtides.index = rawtides.index.tz_convert('UTC')
         self.all_tides = build_all_tides(rawtides, resolution, 'ft',
-                                         extend_ends = True) # &**&
+                                         extend_ends = True) # &**& 'ft'
         self.all_tides.index = self.all_tides.index.tz_convert(self.timezone)
         # back to local time, ready for plotting        
         rawtides.index = rawtides.index.tz_convert(self.timezone)
@@ -345,8 +345,8 @@ class Tides:
             self._set_reference_station_info(metadata)
 
         self.year = str(self.raw_tides.index[100].year)
-        self.annual_max = max(rawtides.ft)     # &**&
-        self.annual_min = min(rawtides.ft)     # &**&
+        self.annual_max = max(rawtides.ft)     # &**& 'ft'
+        self.annual_min = min(rawtides.ft)     # &**& 'ft'
 
     def _set_reference_station_info(self,metadata):
         """Set attributes for reference station information, if station type

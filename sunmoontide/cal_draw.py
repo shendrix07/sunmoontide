@@ -24,9 +24,9 @@ import cal_pages
 
 
 def days_in_month(year_month_string):
-    '''Generator that takes year_month_string (i.e. '2015-07') and yields
-    all the days of the month in order, also as strings (i.e. '2015-07-18').
-    '''
+    """Generator that takes year_month_string (e.g. '2015-07') and yields
+    all the days of the month in order, also as strings (e.g. '2015-07-18').
+    """
     start_date = pd.to_datetime(year_month_string)
     _, days_in_month = calendar.monthrange(start_date.year, start_date.month)
     end_date = start_date + pd.DateOffset(days_in_month)
@@ -37,15 +37,34 @@ def days_in_month(year_month_string):
 
 
 def months_in_year(year_string):
-    '''Generator that takes year_string (i.e. '2015') and yields all the months
-    of the year in order, also as strings (i.e. '2015-07').
-    '''
+    """Generator that takes year_string (e.g. '2015') and yields all the months
+    of the year in order, also as strings (e.g. '2015-07').
+    """
     start_date = pd.to_datetime(year_string + '-01')    
     end_date = start_date + pd.DateOffset(months = 12)
     current_date = start_date
     while current_date < end_date:
         yield current_date.strftime('%Y-%m')
         current_date = current_date + pd.DateOffset(months = 1)
+        
+
+def date_before(year_month_day_string):
+    """For a string of the format 'YYYY-MO-DY' (e.g. '2015-07-01'), returns a
+    string of the same format for the date before (e.g. '2015-06-30').
+    """
+    today = pd.to_datetime(year_month_day_string)
+    yesterday = today - pd.DateOffset()
+    return yesterday.strftime('%Y-%m-%d')
+
+
+def date_after(year_month_day_string):
+    """For a string of the format 'YYYY-MO-DY' (e.g. '2015-05-31'), returns a
+    string of the same format for the date after (e.g. '2015-06-01').
+    """
+    today = pd.to_datetime(year_month_day_string)
+    tomorrow = today + pd.DateOffset()
+    return tomorrow.strftime('%Y-%m-%d')
+
 
 
 def generate_annual_calendar(tide_obj, sun_obj, moon_obj, file_name):
@@ -136,9 +155,32 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         
         Returns ax1, ax2 = sun/moon (ax1) and tide (ax2) subplot handles
         '''
-        day_of_sun = sun_o.altitudes[date]
-        day_of_moon = moon_o.altitudes[date]
-        day_of_tide = tide_o.all_tides[date]
+        # need to extend the slices into neighboring dates to ensure smoothness
+        # (unless it is the first or last day of the year!)
+        yesterday = date_before(date)
+        tomorrow = date_after(date)
+
+        if date[5:] == '01-01':
+            sun_start = sun_o.altitudes.index[0]
+            moon_start = moon_o.altitudes.index[0]
+            tide_start = tide_o.all_tides.index[0]
+        else:
+            sun_start = sun_o.altitudes[yesterday].index[-10]
+            moon_start = moon_o.altitudes[yesterday].index[-10]
+            tide_start = tide_o.all_tides[yesterday].index[-10]
+        
+        if date[5:] == '12-31':
+            sun_stop = sun_o.altitudes.index[-1]
+            moon_stop = moon_o.altitudes.index[-1]
+            tide_stop = tide_o.all_tides.index[-1]
+        else:
+            sun_stop = sun_o.altitudes[tomorrow].index[10]
+            moon_stop = moon_o.altitudes[tomorrow].index[10]
+            tide_stop = tide_o.all_tides[tomorrow].index[10]
+        
+        day_of_sun = sun_o.altitudes[sun_start:sun_stop]
+        day_of_moon = moon_o.altitudes[moon_start:moon_stop]
+        day_of_tide = tide_o.all_tides[tide_start:tide_stop]
         
         # convert indices to matplotlib-friendly datetime format
         Si = day_of_sun.index.to_pydatetime()
@@ -150,11 +192,13 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         Mz = np.zeros(len(Mi))
         Tz = np.zeros(len(Ti))
         
-        # x-limits based on first and last tide interp time - this handles edge
-        # cases where only have one or two hi/lo tides per day and interps are
-        # somewhat sparse - no more odd cut offs near borders
-        start_time = matplotlib.dates.date2num(Ti[0])
-        stop_time = matplotlib.dates.date2num(Ti[-1])
+        # plot x-limits - need to be in matplotlib date number format
+        midnight0 = pd.to_datetime('{} 00:00'.format(date))
+        midnight0 = midnight0.tz_localize(tide_o.timezone).to_pydatetime()
+        midnight1 = pd.to_datetime('{} 00:00'.format(tomorrow))
+        midnight1 = midnight1.tz_localize(tide_o.timezone).to_pydatetime()
+        start_time = matplotlib.dates.date2num(midnight0)
+        stop_time = matplotlib.dates.date2num(midnight1)
         
         # sun and moon heights on top
         ax1 = plt.subplot(gs[grid_index])
