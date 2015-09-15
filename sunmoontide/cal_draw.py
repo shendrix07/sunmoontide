@@ -217,7 +217,7 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         ax1.spines['bottom'].set_visible(False)
         # add date number
         plt.text(0.05, 0.73, pd.to_datetime(date).day, ha = 'left',
-                 fontsize = 12, fontname='Foglihten',
+                 fontsize = 14, fontname='Alegreya',
                  transform = ax1.transAxes)
         # add moon phase icon
         moon_icon = '0ABCDEFGHIJKLM@NOPQRSTUVWXYZ'  # the dark part
