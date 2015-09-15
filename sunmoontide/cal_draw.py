@@ -227,6 +227,9 @@ def month_page(month_string, tide_o, sun_o, moon_o):
         plt.text(0.96, 0.69, '*',   # the white part
                  ha = 'right', fontsize = 12, color = '#D7A8A8', alpha = 0.25,
                  fontname = 'moon phases', transform = ax1.transAxes)
+        plt.text(0.96, 0.69, '@',   # the outline
+                 ha = 'right', fontsize = 12, color = 'black',
+                 fontname = 'moon phases', transform = ax1.transAxes)
         
         # tide magnitudes below
         ax2 = plt.subplot(gs[grid_index + 7])
@@ -369,6 +372,11 @@ def cover(tide):
         # the white part
         ax.text(mx, my, '*', ha = 'right', fontsize = 12, 
                 color = '#D7A8A8', alpha = 0.25, fontname = 'moon phases')
+        # the outline
+        ax.text(mx, my, '@', ha = 'right', fontsize = 12,
+                color = 'black', fontname = 'moon phases', zorder = 20)
+
+
     # the sun
     ax.scatter(0, 18, s=200000, marker = (128, 1, 0),
                            facecolor = '#FFEB00', linewidth = 0.4,
@@ -469,6 +477,10 @@ def yearview(tide_o, sun_o, moon_o):
                          ha = 'left', fontsize = 12, color = '#D7A8A8',
                          alpha = 0.25, fontname = 'moon phases',
                          zorder = 1410)
+                    ax1.text(moontime, 0.69, '@',   # the outline
+                             ha = 'left', fontsize = 12, color = 'black',
+                             fontname = 'moon phases', zorder = 1520)
+
             if luns[luns == 'new'].any():
                 new_moon_times = luns[luns == 'new'].index.to_pydatetime()
                 for moontime in new_moon_times:
@@ -479,6 +491,11 @@ def yearview(tide_o, sun_o, moon_o):
                              ha = 'left', fontsize = 12, color = '#D7A8A8',
                              alpha = 0.25, fontname = 'moon phases',
                              zorder = 1510)
+                    ax1.text(moontime, 0.69, '@',   # the outline
+                             ha = 'left', fontsize = 12, color = 'black',
+                             fontname = 'moon phases', zorder = 1520)
+
+
             if luns.index[-1].day > 25:
                 ax1.set_zorder(10000 - luns.index[-1].month)
             
